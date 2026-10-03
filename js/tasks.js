@@ -18,7 +18,6 @@ class TaskManager {
     const state = this.stateManager.getState();
     const dayName = this.getDayName(dateStr);
     const times = state.scheduleTimes || {};
-    const isShampooDay = (state.hairCareSchedule?.shampooDays || ['Sunday', 'Thursday']).includes(dayName);
     const categories = [];
 
     // 1. 🌅 MORNING
@@ -77,33 +76,7 @@ class TaskManager {
       ]
     });
 
-    // 5. 💇 HAIR CARE
-    let hairCareTask;
-    if (isShampooDay) {
-      hairCareTask = {
-        id: 'task_hair_care',
-        title: 'Hair wash (Gentle shampoo + conditioner on lengths)',
-        time: times.shower || '07:15 AM',
-        hint: `Scheduled wash day (${dayName}). Shampoo scalp gently, rinse, condition lengths.`
-      };
-    } else {
-      hairCareTask = {
-        id: 'task_hair_care',
-        title: 'Keep hair/scalp clean and avoid unnecessary products',
-        time: 'Morning & Night',
-        hint: `Non-wash day (${dayName}). Comb gently, avoid pulling or sleeping with wet hair.`
-      };
-    }
-
-    categories.push({
-      id: 'haircare',
-      title: 'Hair Care',
-      icon: '💇',
-      description: isShampooDay ? `Today is a scheduled wash day (${dayName}).` : `Non-wash day. Gentle combing & scalp cleanliness.`,
-      tasks: [hairCareTask]
-    });
-
-    // 6. 🌙 NIGHT
+    // 5. 🌙 NIGHT
     categories.push({
       id: 'night',
       title: 'Night & Sleep',

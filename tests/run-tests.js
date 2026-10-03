@@ -76,8 +76,8 @@ it('should generate simplified 15-20 core daily actions with AM/PM timings in re
   const categories = tm.getTasksForDate('2026-10-05'); // Monday
   const catIds = categories.map(c => c.id);
 
-  // Verify daily order: morning, college, after_college, nutrition, haircare, night
-  assert.deepStrictEqual(catIds, ['morning', 'college', 'after_college', 'nutrition', 'haircare', 'night']);
+  // Verify daily order: morning, college, after_college, nutrition, night (haircare completely removed)
+  assert.deepStrictEqual(catIds, ['morning', 'college', 'after_college', 'nutrition', 'night']);
 
   let totalTasks = 0;
   categories.forEach(cat => {
@@ -88,8 +88,8 @@ it('should generate simplified 15-20 core daily actions with AM/PM timings in re
     });
   });
 
-  // Verify 15-18 daily actions
-  assert.ok(totalTasks >= 15 && totalTasks <= 18, `Expected 15–18 tasks, got ${totalTasks}`);
+  // Verify 14-17 daily actions
+  assert.ok(totalTasks >= 14 && totalTasks <= 17, `Expected 14–17 tasks, got ${totalTasks}`);
 });
 
 it('should auto-mark water target completed when water consumed reaches target', () => {
@@ -236,12 +236,12 @@ it('should restore valid state from backup', () => {
 
 // 8. UPDATE MANAGER & OFFLINE PERSISTENCE TESTS
 console.log('\nTesting UpdateManager & Offline Resilience...');
-it('should instantiate with default package com.nanduprojects.transformation and versionCode 8', () => {
+it('should instantiate with default package com.nanduprojects.transformation and versionCode 9', () => {
   const sm = new StateManager();
   const um = new UpdateManager(sm);
   assert.strictEqual(um.appVersionInfo.packageName, 'com.nanduprojects.transformation');
-  assert.strictEqual(um.appVersionInfo.versionCode, 8);
-  assert.strictEqual(um.appVersionInfo.versionName, '1.5.0');
+  assert.strictEqual(um.appVersionInfo.versionCode, 9);
+  assert.strictEqual(um.appVersionInfo.versionName, '1.6.0');
 });
 
 it('should configure GITHUB_REPO constant correctly', () => {
@@ -452,12 +452,12 @@ it('should verify the 6 canonical protein foods are configured in state without 
   });
 });
 
-it('should verify build.gradle versionCode is 8 and versionName is 1.5.0', () => {
+it('should verify build.gradle versionCode is 9 and versionName is 1.6.0', () => {
   const fs = require('fs');
   const path = require('path');
   const gradle = fs.readFileSync(path.join(__dirname, '..', 'android', 'app', 'build.gradle'), 'utf8');
-  assert.ok(gradle.includes('versionCode 8'), 'build.gradle must have versionCode 8');
-  assert.ok(gradle.includes('versionName "1.5.0"'), 'build.gradle must have versionName "1.5.0"');
+  assert.ok(gradle.includes('versionCode 9'), 'build.gradle must have versionCode 9');
+  assert.ok(gradle.includes('versionName "1.6.0"'), 'build.gradle must have versionName "1.6.0"');
 });
 
 it('should test consecutive independent toggling of every task button', () => {
@@ -487,12 +487,97 @@ it('should test consecutive independent toggling of every task button', () => {
   });
 });
 
-it('should test theme switching between dark and light modes cleanly', () => {
+it('should enforce explicit manual Save Day and keep uncommitted days out of history', () => {
   const sm = new StateManager();
-  sm.updateProfile({ theme: 'light' });
-  assert.strictEqual(sm.getState().profile.theme, 'light');
-  sm.updateProfile({ theme: 'dark' });
-  assert.strictEqual(sm.getState().profile.theme, 'dark');
+  const tm = new TaskManager(sm);
+  const hm = new HistoryManager(sm, tm);
+  const testDate = '2026-10-15';
+
+  // Initially, record is not saved
+  const rec = sm.getRecord(testDate);
+  assert.strictEqual(rec.saved, false, 'New day record should have saved: false');
+
+  // Modifying tasks keeps saved: false
+  sm.setTaskStatus(testDate, 'task_wake_up', 'DONE');
+  assert.strictEqual(sm.getRecord(testDate).saved, false, 'Modifying task must keep saved: false');
+
+  // History and streaks should NOT count this unsaved day
+  const historyList = hm.getHistoryList();
+  const found = historyList.find(h => h.date === testDate);
+  assert.strictEqual(found, undefined, 'Unsaved day must not be in history list');
+
+  // Explicit Save Day
+  sm.updateRecord(testDate, { saved: true });
+  assert.strictEqual(sm.getRecord(testDate).saved, true, 'Explicit save day sets saved: true');
+  assert.ok(hm.getHistoryList().find(h => h.date === testDate), 'Saved day must now appear in history list');
+
+  // Subsequent edit after saving reverts saved state to false
+  sm.setTaskStatus(testDate, 'task_wake_up', 'PENDING');
+  assert.strictEqual(sm.getRecord(testDate).saved, false, 'Subsequent edit must revert saved to false');
+});
+
+it('should verify complete removal of hair care from tasks, state, and timeline', () => {
+  const sm = new StateManager();
+  const tm = new TaskManager(sm);
+  const state = sm.getState();
+
+  // No hairCareSchedule in state
+  assert.strictEqual(state.hairCareSchedule, undefined, 'hairCareSchedule should not exist in state');
+
+  // No hairSteps in records
+  const rec = sm.getRecord('2026-10-16');
+  assert.strictEqual(rec.hairSteps, undefined, 'hairSteps should not exist in records');
+
+  // No hair care task in any category
+  const categories = tm.getTasksForDate('2026-10-16');
+  const taskIds = [];
+  categories.forEach(c => c.tasks.forEach(t => taskIds.push(t.id)));
+  assert.ok(!taskIds.includes('task_hair_care'), 'task_hair_care must be completely removed');
+  assert.ok(!categories.map(c => c.id).includes('haircare'), 'haircare category must be completely removed');
+});
+
+it('should verify 36 curated themes and 5 layouts are defined in js/themes.js', () => {
+  const { THEMES, LAYOUTS, ThemeManager } = require('../js/themes.js');
+  assert.strictEqual(THEMES.length, 36, `Expected exactly 36 themes, found ${THEMES.length}`);
+  assert.strictEqual(LAYOUTS.length, 5, `Expected 5 layouts, found ${LAYOUTS.length}`);
+
+  // Check required theme keys
+  THEMES.forEach(th => {
+    assert.ok(th.id, 'Theme must have id');
+    assert.ok(th.name, 'Theme must have name');
+    assert.ok(th.mode === 'dark' || th.mode === 'light', 'Theme mode must be dark or light');
+    assert.ok(th.accent, 'Theme must have accent');
+    assert.ok(th.bgApp, 'Theme must have bgApp');
+    assert.ok(th.bgCard, 'Theme must have bgCard');
+  });
+
+  // Check layout keys
+  const layoutIds = LAYOUTS.map(l => l.id);
+  assert.deepStrictEqual(layoutIds, ['classic', 'compact', 'dashboard', 'minimal', 'focus']);
+
+  // ThemeManager lookup
+  assert.ok(ThemeManager.getTheme('midnight'));
+  assert.ok(ThemeManager.getTheme('arctic'));
+  assert.ok(ThemeManager.getLayout('compact'));
+});
+
+it('should verify safe-area status bar fix in css/app.css', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'css', 'app.css'), 'utf8');
+  assert.ok(css.includes('max(env(safe-area-inset-top, 0px), 42px)'), 'app-header must have top safe area padding');
+  assert.ok(css.includes('max(env(safe-area-inset-bottom, 0px), 14px)'), 'bottom-nav must have bottom safe area padding');
+});
+
+it('should verify unsaved next day modal in index.html', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.ok(html.includes('id="modalUnsavedNextDay"'), 'modalUnsavedNextDay must exist');
+  assert.ok(html.includes('id="btnNextDaySaveAndContinue"'), 'btnNextDaySaveAndContinue must exist');
+  assert.ok(html.includes('id="btnNextDayContinueWithoutSave"'), 'btnNextDayContinueWithoutSave must exist');
+  assert.ok(html.includes('id="btnNextDayCancel"'), 'btnNextDayCancel must exist');
+  assert.ok(html.includes('id="secThemeStudio"'), 'Theme Studio section must exist');
 });
 
 console.log(`\n========================================`);

@@ -6,10 +6,14 @@ class HistoryManager {
   }
 
   // Get all recorded days sorted reverse-chronologically (newest first)
+  // Only days that were explicitly saved by the user are included
   getHistoryList() {
     const state = this.stateManager.getState();
     const records = state.records || {};
-    const dates = Object.keys(records).sort().reverse();
+    const dates = Object.keys(records)
+      .filter(dateStr => records[dateStr] && records[dateStr].saved === true)
+      .sort()
+      .reverse();
 
     return dates.map(dateStr => {
       const record = records[dateStr];
@@ -17,36 +21,36 @@ class HistoryManager {
       return {
         date: dateStr,
         dayNumber: record.dayNumber || this.stateManager.calculateDayNumber(dateStr),
-        saved: !!record.saved,
+        saved: true,
         percentage: stats.percentage,
         completed: stats.completed,
         notCompleted: stats.notCompleted,
         remaining: stats.remaining,
         total: stats.total,
         waterConsumedL: record.waterConsumedL || 0,
-        proteinConsumedG: record.proteinConsumedG || 0,
         sleepHours: record.sleepHours || 0,
-        studyCompletedMin: record.studyCompletedMin || 0,
-        weightKg: record.weightKg || null
+        studyCompletedMin: record.studyCompletedMin || 0
       };
     });
   }
 
-  // Compute streaks
+  // Compute streaks strictly from explicitly saved days
   calculateStreaks() {
     const state = this.stateManager.getState();
     const records = state.records || {};
-    const dates = Object.keys(records).sort(); // chronological order
+    const savedDates = Object.keys(records)
+      .filter(dateStr => records[dateStr] && records[dateStr].saved === true)
+      .sort(); // chronological order
 
-    if (dates.length === 0) {
+    if (savedDates.length === 0) {
       return { currentStreak: 0, bestStreak: 0, totalDaysTracked: 0 };
     }
 
     let bestStreak = 0;
     let tempStreak = 0;
 
-    for (let i = 0; i < dates.length; i++) {
-      const dateStr = dates[i];
+    for (let i = 0; i < savedDates.length; i++) {
+      const dateStr = savedDates[i];
       const stats = this.taskManager.calculateStats(dateStr);
       const isSuccessful = stats.percentage >= 50 || records[dateStr].saved;
 
@@ -60,27 +64,27 @@ class HistoryManager {
       }
     }
 
-    // Determine current streak checking up to today
-    const today = new Date().toISOString().split('T')[0];
+    // Determine current streak checking backward from today
     let currentStreak = 0;
-    
-    // Look backward from today or yesterday
     let checkDate = new Date();
-    // Allow checking up to 365 days back
     for (let d = 0; d < 365; d++) {
-      const curStr = checkDate.toISOString().split('T')[0];
+      const y = checkDate.getFullYear();
+      const m = String(checkDate.getMonth() + 1).padStart(2, '0');
+      const day = String(checkDate.getDate()).padStart(2, '0');
+      const curStr = `${y}-${m}-${day}`;
       const rec = records[curStr];
-      if (rec) {
+
+      if (rec && rec.saved === true) {
         const stats = this.taskManager.calculateStats(curStr);
         if (stats.percentage >= 50 || rec.saved) {
           currentStreak++;
-        } else if (d === 0) {
-          // If today is not finished yet, don't break immediately, check yesterday
         } else {
           break;
         }
+      } else if (d === 0) {
+        // Today has not been saved yet; check yesterday
       } else {
-        if (d > 0) break; // Missed prior day
+        break; // Prior day was not saved
       }
       checkDate.setDate(checkDate.getDate() - 1);
     }
@@ -92,7 +96,7 @@ class HistoryManager {
     return {
       currentStreak,
       bestStreak,
-      totalDaysTracked: dates.length
+      totalDaysTracked: savedDates.length
     };
   }
 

@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#0F172A">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="icons/favicon.png">
-  <link rel="stylesheet" href="css/app.css?v=1.5.0">
+  <link rel="stylesheet" href="css/app.css?v=1.6.0">
   <script>
     // Invalidate stale WebView cache and unregister legacy service workers
     if ('serviceWorker' in navigator) {
@@ -360,26 +360,7 @@
         </div>
       </section>
 
-      <!-- 7. 💇 HAIR CARE SECTION -->
-      <section class="section-card" id="cat-haircare">
-        <div class="section-head collapsible" data-target="body-haircare">
-          <div class="section-title-wrap">
-            <span class="section-icon">💇</span>
-            <div>
-              <h2 class="section-title">Hair Care</h2>
-              <div class="section-desc" style="margin-bottom: 0;" id="lblHairCareNotice">Gentle care & scheduled wash days</div>
-            </div>
-          </div>
-          <span class="section-chevron">▼</span>
-        </div>
-
-        <div class="section-body" id="body-haircare">
-          <div id="hairCareContentContainer" style="margin-top: 8px;"></div>
-          <div class="task-list" id="taskList-haircare"></div>
-        </div>
-      </section>
-
-      <!-- 8. 🌙 NIGHT SECTION -->
+      <!-- 7. 🌙 NIGHT SECTION -->
       <section class="section-card" id="cat-night">
         <div class="section-head collapsible" data-target="body-night">
           <div class="section-title-wrap">
@@ -562,6 +543,63 @@
         </div>
       </section>
 
+      <!-- 🎨 Appearance & Theme Studio -->
+      <section class="settings-group" id="secThemeStudio">
+        <h3>🎨 Appearance & Theme Studio</h3>
+        <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 12px;">
+          Choose from 36 professional themes and 5 custom layouts with instant live preview:
+        </div>
+
+        <!-- Live Theme Preview Box -->
+        <div class="theme-preview-card" id="themePreviewBox">
+          <div class="theme-preview-header">
+            <span class="theme-preview-app-title">MY PERSONAL TRANSFORMATION</span>
+            <span class="theme-preview-badge">Live Preview</span>
+          </div>
+          <div class="theme-preview-content">
+            <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-secondary); margin-bottom: 2px;">
+              Today's Progress
+            </div>
+            <div id="previewProgressVal" style="font-size: 1.4rem; font-weight: 900; color: var(--color-brand); margin-bottom: 6px;">
+              72%
+            </div>
+            <div class="preview-progress-track" style="height: 6px; background: rgba(128, 128, 128, 0.2); border-radius: 99px; overflow: hidden; margin-bottom: 10px;">
+              <div id="previewProgressFill" style="width: 72%; height: 100%; background: var(--color-brand); border-radius: 99px;"></div>
+            </div>
+            <div class="preview-task-card" style="padding: 10px 12px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">06:40 AM</div>
+                <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-primary);">Drink water</div>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" class="preview-btn-mock" style="padding: 6px 12px; border-radius: 6px; font-size: 1rem; border: 1px solid var(--color-success); background: var(--btn-done-bg); cursor: default;">✅</button>
+                <button type="button" class="preview-btn-mock" style="padding: 6px 12px; border-radius: 6px; font-size: 1rem; border: 1px solid var(--border-subtle); background: var(--bg-input); cursor: default;">❌</button>
+              </div>
+            </div>
+          </div>
+          <div class="preview-actions-row" style="display: flex; gap: 8px; margin-top: 12px;">
+            <button class="btn-chip" id="btnApplyThemeStudio" style="flex: 1; background: var(--color-brand); color: #fff; font-weight: 700; min-height: 42px;">
+              APPLY THEME
+            </button>
+            <button class="btn-chip chip-reset" id="btnResetThemeStudio" style="min-height: 42px;">
+              RESET TO DEFAULT
+            </button>
+          </div>
+        </div>
+
+        <!-- Layout Selector Options -->
+        <div style="margin-top: 16px; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700;">
+          📐 Layout Choice
+        </div>
+        <div class="layout-options-grid" id="layoutOptionsGrid"></div>
+
+        <!-- 36 Themes Grid -->
+        <div style="margin-top: 16px; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700;">
+          🎨 Color Palette (36 Themes)
+        </div>
+        <div class="themes-grid" id="themeStudioGrid"></div>
+      </section>
+
       <!-- 🕒 Daily Schedule Timings (All Editable in Settings!) -->
       <section class="settings-group">
         <h3>⏰ Daily Routine Timings (AM / PM)</h3>
@@ -664,17 +702,11 @@
         </div>
       </section>
 
-      <!-- Skincare & Haircare Customization -->
+      <!-- Skincare Customization -->
       <section class="settings-group">
         <h3>✨ Skincare Products</h3>
         <div id="settingsSkincareList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;"></div>
         <button class="btn-chip" id="btnAddSkincareProduct" style="width: 100%;">➕ Add Skincare Product</button>
-      </section>
-
-      <section class="settings-group">
-        <h3>💇 Hair Care Shampoo Days</h3>
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">Select which days you want to shampoo:</div>
-        <div id="settingsHairDayChecks" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;"></div>
       </section>
 
       <!-- Notifications & Reminders -->
@@ -708,11 +740,11 @@
         <h3>🚀 App Updates</h3>
         <div class="form-row">
           <span class="form-label">Current version</span>
-          <strong id="lblInstalledVersion" style="color: var(--color-brand);">v1.5.0 (Build 8)</strong>
+          <strong id="lblInstalledVersion" style="color: var(--color-brand);">v1.6.0 (Build 9)</strong>
         </div>
         <div class="form-row">
           <span class="form-label">Update status</span>
-          <span id="lblUpdateStatus" style="font-size: 0.82rem; color: var(--color-success); font-weight: 600;">Update system v1.5.0</span>
+          <span id="lblUpdateStatus" style="font-size: 0.82rem; color: var(--color-success); font-weight: 600;">Update system v1.6.0</span>
         </div>
         <div class="form-row">
           <span class="form-label">Update source</span>
@@ -874,18 +906,45 @@
     </div>
   </div>
 
+  <!-- MODAL 5: NEXT DAY UNSAVED CONFIRMATION -->
+  <div class="modal-overlay" id="modalUnsavedNextDay">
+    <div class="modal-sheet" style="max-width: 400px; text-align: center;">
+      <div class="modal-header">
+        <h3 class="modal-title">⚠️ Unsaved Changes</h3>
+        <button class="btn-close-modal" id="btnCloseUnsavedModal">✕</button>
+      </div>
+
+      <div style="font-size: 0.95rem; color: var(--text-primary); margin: 12px 0 18px; line-height: 1.5; font-weight: 500;">
+        Today's changes haven't been saved.
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn-primary-action btn-save-day" id="btnNextDaySaveAndContinue" style="margin-bottom: 0;">
+          💾 Save & Continue
+        </button>
+        <button class="btn-primary-action btn-next-day" id="btnNextDayContinueWithoutSave">
+          ⏩ Continue Without Saving
+        </button>
+        <button class="btn-chip chip-reset" id="btnNextDayCancel" style="width: 100%; min-height: 44px; margin-top: 4px;">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div class="toast" id="toastMessage">Action Saved</div>
 
   <!-- Scripts with cache busters to prevent stale WebView script loading -->
-  <script src="js/state.js?v=1.5.0"></script>
-  <script src="js/tasks.js?v=1.5.0"></script>
-  <script src="js/workout.js?v=1.5.0"></script>
-  <script src="js/timetable.js?v=1.5.0"></script>
-  <script src="js/routine.js?v=1.5.0"></script>
-  <script src="js/history.js?v=1.5.0"></script>
-  <script src="js/backup.js?v=1.5.0"></script>
-  <script src="js/update.js?v=1.5.0"></script>
-  <script src="js/app.js?v=1.5.0"></script>
+  <script src="js/themes.js?v=1.6.0"></script>
+  <script src="js/state.js?v=1.6.0"></script>
+  <script src="js/tasks.js?v=1.6.0"></script>
+  <script src="js/workout.js?v=1.6.0"></script>
+  <script src="js/timetable.js?v=1.6.0"></script>
+  <script src="js/routine.js?v=1.6.0"></script>
+  <script src="js/history.js?v=1.6.0"></script>
+  <script src="js/backup.js?v=1.6.0"></script>
+  <script src="js/update.js?v=1.6.0"></script>
+  <script src="js/app.js?v=1.6.0"></script>
 </body>
 </html>

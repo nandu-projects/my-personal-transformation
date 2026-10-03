@@ -100,7 +100,9 @@ const DEFAULT_STATE = {
     challengeType: '30', // '7' | '14' | '30' | '60' | '90' | 'custom' | 'unlimited'
     challengeDays: 30,
     startDate: new Date().toISOString().split('T')[0],
-    theme: 'dark' // 'light' | 'dark'
+    theme: 'dark', // 'light' | 'dark'
+    themeId: 'midnight',
+    layoutId: 'classic'
   },
   scheduleTimes: DEFAULT_SCHEDULE_TIMES,
   targets: {
@@ -115,10 +117,6 @@ const DEFAULT_STATE = {
     leaveHomeTime: '08:20',
     expectedTravelMin: 30,
     returnHomeTime: '17:15'
-  },
-  hairCareSchedule: {
-    shampooDays: ['Sunday', 'Thursday'],
-    customTasks: ['Scalp care / massage']
   },
   skincareProducts: [
     { id: 'sk_m1', name: 'Face wash', time: 'Morning' },
@@ -169,11 +167,10 @@ class StateManager {
 
   migrateAndMerge(saved) {
     const merged = { ...DEFAULT_STATE, ...saved };
-    merged.profile = { ...DEFAULT_STATE.profile, ...(saved.profile || {}) };
+    merged.profile = { themeId: 'midnight', layoutId: 'classic', ...DEFAULT_STATE.profile, ...(saved.profile || {}) };
     merged.scheduleTimes = { ...DEFAULT_SCHEDULE_TIMES, ...(saved.scheduleTimes || {}) };
     merged.targets = { ...DEFAULT_STATE.targets, ...(saved.targets || {}) };
     merged.travel = { ...DEFAULT_STATE.travel, ...(saved.travel || {}) };
-    merged.hairCareSchedule = { ...DEFAULT_STATE.hairCareSchedule, ...(saved.hairCareSchedule || {}) };
     merged.skincareProducts = saved.skincareProducts || DEFAULT_STATE.skincareProducts;
     merged.cookingTasks = saved.cookingTasks || DEFAULT_STATE.cookingTasks;
 
@@ -269,10 +266,9 @@ class StateManager {
       lunchItems: [],
       snackItems: [],
       dinnerItems: [],
-      proteinFoodsEaten: {}, // { [pf_id]: { eaten: boolean, qty: number/string } }
+      proteinFoodsEaten: {}, // { [pf_id]: { eaten: boolean } }
       skinMorningSteps: { wash: false, moisturizer: false, sunscreen: false },
       skinNightSteps: { wash: false, moisturizer: false },
-      hairSteps: { morningComb: false, morningPullAvoid: false, nightClean: false, nightWetAvoid: false, shampoo: false, conditioner: false },
       mealsEaten: { breakfast: false, lunch: false, dinner: false },
       cookingDone: { breakfast: false, lunch: false, dinner: false },
       notes: '',
@@ -291,7 +287,12 @@ class StateManager {
 
   updateRecord(dateStr, updater) {
     const current = this.getRecord(dateStr);
-    const updated = typeof updater === 'function' ? updater(current) : { ...current, ...updater };
+    const updates = typeof updater === 'function' ? updater(current) : updater;
+    const updated = { ...current, ...updates };
+    // If user modifies record without explicitly setting saved: true, revert saved to false
+    if (updates.saved === undefined && current.saved) {
+      updated.saved = false;
+    }
     updated.updatedAt = new Date().toISOString();
     this.state.records[dateStr] = updated;
     this.save();
@@ -301,9 +302,12 @@ class StateManager {
   setTaskStatus(dateStr, taskId, status) {
     const record = this.getRecord(dateStr);
     if (!record.tasks) record.tasks = {};
-    record.tasks[taskId] = status; // 'DONE', 'NOT_DONE', or 'PENDING'
-    record.updatedAt = new Date().toISOString();
-    this.save();
+    if (record.tasks[taskId] !== status) {
+      record.tasks[taskId] = status; // 'DONE', 'NOT_DONE', or 'PENDING'
+      record.saved = false; // Modifying tasks un-saves the day!
+      record.updatedAt = new Date().toISOString();
+      this.save();
+    }
   }
 
   setActiveDate(dateStr) {
@@ -353,11 +357,6 @@ class StateManager {
 
   setCookingTasks(tasks) {
     this.state.cookingTasks = tasks;
-    this.save();
-  }
-
-  setHairCareSchedule(schedule) {
-    this.state.hairCareSchedule = schedule;
     this.save();
   }
 

@@ -95,9 +95,13 @@ document.addEventListener('DOMContentLoaded', () => {
     headerDateLabel.textContent = formatDateHeader(activeDate);
     headerDayBadge.textContent = `DAY ${dayNumber}`;
 
-    // Theme
-    document.documentElement.setAttribute('data-theme', state.profile.theme || 'dark');
-    btnToggleTheme.textContent = state.profile.theme === 'light' ? '☀️' : '🌙';
+    // Theme & Layout
+    if (window.ThemeManager) {
+      ThemeManager.init(state.profile);
+    } else {
+      document.documentElement.setAttribute('data-theme', state.profile.theme || 'dark');
+    }
+    btnToggleTheme.textContent = (state.profile.theme === 'light' || document.documentElement.getAttribute('data-theme') === 'light') ? '☀️' : '🌙';
 
     // Challenge Bar Pills
     document.querySelectorAll('.challenge-pill').forEach(pill => {
@@ -257,10 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Protein Foods Checklist (Simple checkboxes, no grams)
     renderProteinFoodsList(state, record, activeDate);
 
-    // --- 5. 💇 HAIR CARE SECTION ---
-    renderHairCareSection(state, record, activeDate, dayName);
-
-    // --- 6. 🌙 NIGHT SECTION ---
+    // --- 5. 🌙 NIGHT SECTION ---
     document.getElementById('lblTimeNightSkin').textContent = times.nightSkin || '09:30 PM';
     const skinNight = record.skinNightSteps || {};
     document.getElementById('cbSkinNightWash').checked = !!skinNight.wash;
@@ -271,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('inputSleepHours').value = record.sleepHours !== undefined ? record.sleepHours : 8;
     document.getElementById('lblSleepTarget').textContent = `${state.targets?.sleepTargetHours || '7–9'} hours`;
 
-    // --- 7. Full Daily Timeline ---
+    // --- 6. Full Daily Timeline ---
     const timelineContainer = document.getElementById('homeTimelineList');
     if (timelineContainer) {
       const timelineItems = routineManager.getTodayTimeline(activeDate);
@@ -292,14 +293,19 @@ document.addEventListener('DOMContentLoaded', () => {
     resultRemainingVal.textContent = stats.remaining;
     resultPercentVal.textContent = `${stats.percentage}%`;
 
+    // Save Day Button State
     if (record.saved) {
-      btnSaveDay.textContent = '✅ DAY SAVED (Tap to Update)';
-      btnSaveDay.style.background = 'var(--bg-card-hover)';
-      btnSaveDay.style.border = '1px solid var(--color-brand)';
+      btnSaveDay.textContent = '✓ DAY SAVED';
+      btnSaveDay.classList.add('saved-state');
+      btnSaveDay.style.background = 'var(--color-success)';
+      btnSaveDay.style.border = 'none';
+      btnSaveDay.style.color = '#FFFFFF';
     } else {
       btnSaveDay.textContent = '💾 SAVE DAY';
+      btnSaveDay.classList.remove('saved-state');
       btnSaveDay.style.background = 'var(--color-brand)';
       btnSaveDay.style.border = 'none';
+      btnSaveDay.style.color = '#FFFFFF';
     }
   }
 
@@ -446,105 +452,79 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Hair Care Section Helper
-  function renderHairCareSection(state, record, activeDate, dayName) {
-    const container = document.getElementById('hairCareContentContainer');
-    const notice = document.getElementById('lblHairCareNotice');
-    if (!container) return;
+  // Theme Studio & Layout Preview Helpers
+  let previewThemeId = null;
+  let previewLayoutId = null;
 
-    const shampooDays = state.hairCareSchedule?.shampooDays || ['Sunday', 'Thursday'];
-    const isWashDay = shampooDays.includes(dayName);
-    const steps = record.hairSteps || {};
+  function renderThemeStudio() {
+    const state = stateManager.getState();
+    const currentThemeId = previewThemeId || state.profile?.themeId || 'midnight';
+    const currentLayoutId = previewLayoutId || state.profile?.layoutId || 'classic';
 
-    if (isWashDay) {
-      if (notice) notice.textContent = `Today is a scheduled wash day (${dayName}). Wash gently & hydrate.`;
-      container.innerHTML = `
-        <div class="substep-card">
-          <div class="substep-header">
-            <strong style="color: var(--color-brand); font-size: 0.88rem;">🚿 Hair Wash Routine</strong>
-            <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 700;">Scheduled Day</span>
-          </div>
-          <div class="substep-instruction">
-            "Apply shampoo mainly to the scalp. Do not aggressively rub the hair."<br>
-            "Use conditioner mainly on the hair lengths/ends."
-          </div>
-          <div class="substep-list">
-            <label class="substep-item ${steps.shampoo ? 'checked' : ''}">
-              <span>1. Shampoo scalp gently</span>
-              <input type="checkbox" id="cbHairShampoo" ${steps.shampoo ? 'checked' : ''}>
-            </label>
-            <label class="substep-item ${steps.rinse1 ? 'checked' : ''}">
-              <span>2. Rinse properly</span>
-              <input type="checkbox" id="cbHairRinse1" ${steps.rinse1 ? 'checked' : ''}>
-            </label>
-            <label class="substep-item ${steps.conditioner ? 'checked' : ''}">
-              <span>3. Conditioner on hair lengths</span>
-              <input type="checkbox" id="cbHairConditioner" ${steps.conditioner ? 'checked' : ''}>
-            </label>
-            <label class="substep-item ${steps.rinse2 ? 'checked' : ''}">
-              <span>4. Final gentle rinse</span>
-              <input type="checkbox" id="cbHairRinse2" ${steps.rinse2 ? 'checked' : ''}>
-            </label>
-          </div>
+    // Render Layout Options
+    const layoutContainer = document.getElementById('layoutOptionsGrid');
+    if (layoutContainer && window.LAYOUTS) {
+      layoutContainer.innerHTML = LAYOUTS.map(layout => `
+        <div class="layout-option-chip ${layout.id === currentLayoutId ? 'active' : ''}" data-layout-id="${layout.id}">
+          <div class="layout-icon">${layout.icon}</div>
+          <div class="layout-name">${layout.name}</div>
         </div>
-      `;
-
-      // Hair Wash Checkboxes listeners
-      ['cbHairShampoo', 'cbHairRinse1', 'cbHairConditioner', 'cbHairRinse2'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.onchange = (e) => {
-            const key = id.replace('cbHair', '').toLowerCase();
-            const curSteps = record.hairSteps || {};
-            curSteps[key] = e.target.checked;
-            stateManager.updateRecord(activeDate, { hairSteps: curSteps });
-            if (curSteps.shampoo && curSteps.conditioner && record.tasks?.task_hair_care !== 'DONE') {
-              stateManager.setTaskStatus(activeDate, 'task_hair_care', 'DONE');
-            }
-            renderAll();
-          };
-        }
-      });
-    } else {
-      if (notice) notice.textContent = `Non-wash day (${dayName}). Wash days: ${shampooDays.join(', ')}.`;
-      container.innerHTML = `
-        <div class="substep-card">
-          <div class="substep-header">
-            <strong style="color: var(--text-primary); font-size: 0.85rem;">💇 Daily Gentle Care (Non-Wash Day)</strong>
-            <span style="font-size: 0.72rem; color: var(--color-brand); font-weight: 700;">Simple</span>
-          </div>
-          <div class="substep-instruction">
-            "Keep hair/scalp clean and avoid unnecessary products. Do not force daily shampoo or oil."
-          </div>
-          <div class="substep-list">
-            <label class="substep-item ${steps.morningComb ? 'checked' : ''}">
-              <span>Morning: Comb gently & avoid pulling</span>
-              <input type="checkbox" id="cbHairComb" ${steps.morningComb ? 'checked' : ''}>
-            </label>
-            <label class="substep-item ${steps.nightClean ? 'checked' : ''}">
-              <span>Night: Keep scalp clean & avoid sleeping with wet hair</span>
-              <input type="checkbox" id="cbHairNight" ${steps.nightClean ? 'checked' : ''}>
-            </label>
-          </div>
-        </div>
-      `;
-
-      ['cbHairComb', 'cbHairNight'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.onchange = (e) => {
-            const key = id === 'cbHairComb' ? 'morningComb' : 'nightClean';
-            const curSteps = record.hairSteps || {};
-            curSteps[key] = e.target.checked;
-            stateManager.updateRecord(activeDate, { hairSteps: curSteps });
-            if (curSteps.morningComb && record.tasks?.task_hair_care !== 'DONE') {
-              stateManager.setTaskStatus(activeDate, 'task_hair_care', 'DONE');
-            }
-            renderAll();
-          };
-        }
-      });
+      `).join('');
     }
+
+    // Render Theme Swatches
+    const themeContainer = document.getElementById('themeStudioGrid');
+    if (themeContainer && window.THEMES) {
+      themeContainer.innerHTML = THEMES.map(theme => `
+        <div class="theme-swatch-card ${theme.id === currentThemeId ? 'active' : ''}" data-theme-id="${theme.id}">
+          <div class="theme-swatch-header">
+            <span class="theme-swatch-name">${theme.name}</span>
+            <span class="theme-swatch-tag" style="background: ${theme.accent}22; color: ${theme.accent};">${theme.mode}</span>
+          </div>
+          <div class="theme-palette-bar">
+            <span style="background: ${theme.bgApp}"></span>
+            <span style="background: ${theme.bgCard}"></span>
+            <span style="background: ${theme.border}"></span>
+            <span style="background: ${theme.accent}"></span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Update Live Preview Card
+    updateThemePreviewCard(currentThemeId, currentLayoutId);
+  }
+
+  function updateThemePreviewCard(themeId, layoutId) {
+    if (!window.ThemeManager) return;
+    const theme = ThemeManager.getTheme(themeId);
+    const layout = ThemeManager.getLayout(layoutId);
+    const previewBox = document.getElementById('themePreviewBox');
+    if (!previewBox || !theme) return;
+
+    previewBox.innerHTML = `
+      <div class="theme-preview-card" style="background: ${theme.bgCard}; border-color: ${theme.border};">
+        <div class="theme-preview-header">
+          <span class="theme-preview-title" style="color: ${theme.textPrimary};">${theme.name}</span>
+          <span class="theme-preview-badge" style="background: ${theme.accent}; color: #FFFFFF;">${layout ? layout.name : 'Classic'}</span>
+        </div>
+        <div class="theme-preview-mockup" style="background: ${theme.bgSurface}; border-color: ${theme.border};">
+          <div class="theme-mock-task" style="background: ${theme.bgCard}; border-color: ${theme.border}; color: ${theme.textPrimary};">
+            <span>06:30 AM • Wake Up Checklist</span>
+            <div class="theme-mock-btns">
+              <span class="theme-mock-btn" style="border-color: ${theme.accent}; color: ${theme.accent}; background: ${theme.accent}20;">✅</span>
+              <span class="theme-mock-btn" style="border-color: #EF4444; color: #EF4444; background: rgba(239,68,68,0.15);">❌</span>
+            </div>
+          </div>
+          <div style="font-size: 0.8rem; color: ${theme.textSecondary};">
+            Theme Mode: <strong>${theme.mode.toUpperCase()}</strong> • Accent: <strong style="color: ${theme.accent};">${theme.accent}</strong>
+          </div>
+        </div>
+        <div style="font-size: 0.75rem; color: ${theme.textSecondary}; text-align: center;">
+          Tap any theme or layout below to preview live, then tap <strong>Apply Theme</strong> to save.
+        </div>
+      </div>
+    `;
   }
 
   function renderHistoryScreen(state) {
@@ -668,21 +648,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('settingTravelMin').value = state.travel?.expectedTravelMin || 30;
     document.getElementById('settingReturnTime').value = state.travel?.returnHomeTime || '04:30 PM';
 
-    // Hair Shampoo Days Checkboxes
-    const hairContainer = document.getElementById('settingsHairDayChecks');
-    if (hairContainer) {
-      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-      const currentShampoo = state.hairCareSchedule?.shampooDays || ['Sunday', 'Thursday'];
-      hairContainer.innerHTML = days.map(d => {
-        const checked = currentShampoo.includes(d) ? 'checked' : '';
-        return `
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
-            <input type="checkbox" class="hair-day-cb" value="${d}" ${checked}>
-            <span>${d}</span>
-          </label>
-        `;
-      }).join('');
-    }
+    // Render Theme Studio in Settings
+    renderThemeStudio();
 
     // Skincare products list
     const skinContainer = document.getElementById('settingsSkincareList');
@@ -1080,27 +1047,66 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Posture routine logged ✅');
   });
 
-  // SAVE DAY & NEXT DAY
-  btnSaveDay.addEventListener('click', () => {
-    const activeDate = stateManager.getState().activeDate;
-    const stats = taskManager.calculateStats(activeDate);
-    stateManager.updateRecord(activeDate, { saved: true });
-    renderAll();
-    showToast(`🎉 Day Saved! Completed: ${stats.completed}/${stats.total} (${stats.percentage}%)`);
-  });
-
-  btnNextDay.addEventListener('click', () => {
+  // SAVE DAY & NEXT DAY LOGIC
+  function advanceToNextDay() {
     const activeDate = stateManager.getState().activeDate;
     const parts = activeDate.split('-').map(Number);
     const d = new Date(parts[0], parts[1] - 1, parts[2]);
     d.setDate(d.getDate() + 1);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const nextDateStr = `${y}-${m}-${day}`;
 
-    const nextDateStr = d.toISOString().split('T')[0];
     stateManager.setActiveDate(nextDateStr);
     renderAll();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    showToast(`Moved to ${formatDateHeader(nextDateStr)}`);
+    showToast(`Moved to Day ${stateManager.calculateDayNumber(nextDateStr)} (${formatDateHeader(nextDateStr)})`);
+  }
+
+  btnSaveDay.addEventListener('click', () => {
+    const activeDate = stateManager.getState().activeDate;
+    stateManager.updateRecord(activeDate, { saved: true });
+    renderAll();
+    showToast('Day saved successfully ✓');
   });
+
+  btnNextDay.addEventListener('click', () => {
+    const activeDate = stateManager.getState().activeDate;
+    const record = stateManager.getRecord(activeDate);
+    if (!record.saved) {
+      openModal('modalUnsavedNextDay');
+    } else {
+      advanceToNextDay();
+    }
+  });
+
+  // Unsaved Next Day Dialog Listeners
+  const btnNextDaySaveAndContinue = document.getElementById('btnNextDaySaveAndContinue');
+  if (btnNextDaySaveAndContinue) {
+    btnNextDaySaveAndContinue.addEventListener('click', () => {
+      const activeDate = stateManager.getState().activeDate;
+      stateManager.updateRecord(activeDate, { saved: true });
+      closeModal('modalUnsavedNextDay');
+      showToast('Day saved successfully ✓');
+      advanceToNextDay();
+    });
+  }
+
+  const btnNextDayContinueWithoutSave = document.getElementById('btnNextDayContinueWithoutSave');
+  if (btnNextDayContinueWithoutSave) {
+    btnNextDayContinueWithoutSave.addEventListener('click', () => {
+      closeModal('modalUnsavedNextDay');
+      advanceToNextDay();
+    });
+  }
+
+  const btnNextDayCancel = document.getElementById('btnNextDayCancel');
+  if (btnNextDayCancel) {
+    btnNextDayCancel.addEventListener('click', () => {
+      closeModal('modalUnsavedNextDay');
+    });
+  }
 
   // HISTORY CARD CLICK -> DETAILS MODAL
   document.getElementById('historyListContainer').addEventListener('click', (e) => {
@@ -1349,17 +1355,74 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAll();
   });
 
-  // Hair care days checkboxes in settings
-  document.getElementById('settingsHairDayChecks').addEventListener('change', () => {
-    const selected = [];
-    document.querySelectorAll('.hair-day-cb:checked').forEach(cb => selected.push(cb.value));
-    stateManager.setHairCareSchedule({
-      ...stateManager.getState().hairCareSchedule,
-      shampooDays: selected
+  // Theme Studio & Layout Customizer Listeners
+  const layoutGrid = document.getElementById('layoutOptionsGrid');
+  if (layoutGrid) {
+    layoutGrid.addEventListener('click', (e) => {
+      const chip = e.target.closest('.layout-option-chip');
+      if (!chip) return;
+      previewLayoutId = chip.dataset.layoutId;
+      document.querySelectorAll('.layout-option-chip').forEach(c => c.classList.toggle('active', c === chip));
+      const curThemeId = previewThemeId || stateManager.getState().profile?.themeId || 'midnight';
+      if (window.ThemeManager) {
+        ThemeManager.apply(curThemeId, previewLayoutId);
+      }
+      updateThemePreviewCard(curThemeId, previewLayoutId);
     });
-    renderAll();
-    showToast('Shampoo days updated');
-  });
+  }
+
+  const themeGrid = document.getElementById('themeStudioGrid');
+  if (themeGrid) {
+    themeGrid.addEventListener('click', (e) => {
+      const card = e.target.closest('.theme-swatch-card');
+      if (!card) return;
+      previewThemeId = card.dataset.themeId;
+      document.querySelectorAll('.theme-swatch-card').forEach(c => c.classList.toggle('active', c === card));
+      const curLayoutId = previewLayoutId || stateManager.getState().profile?.layoutId || 'classic';
+      if (window.ThemeManager) {
+        ThemeManager.apply(previewThemeId, curLayoutId);
+      }
+      updateThemePreviewCard(previewThemeId, curLayoutId);
+    });
+  }
+
+  const btnApplyTheme = document.getElementById('btnApplyThemeStudio');
+  if (btnApplyTheme) {
+    btnApplyTheme.addEventListener('click', () => {
+      const state = stateManager.getState();
+      const themeToSave = previewThemeId || state.profile?.themeId || 'midnight';
+      const layoutToSave = previewLayoutId || state.profile?.layoutId || 'classic';
+      const themeObj = window.ThemeManager ? ThemeManager.getTheme(themeToSave) : null;
+      stateManager.updateProfile({
+        themeId: themeToSave,
+        layoutId: layoutToSave,
+        theme: themeObj ? themeObj.mode : 'dark'
+      });
+      if (window.ThemeManager) {
+        ThemeManager.apply(themeToSave, layoutToSave);
+      }
+      renderAll();
+      showToast(`Applied ${themeObj?.name || 'Theme'} (${layoutToSave}) ✓`);
+    });
+  }
+
+  const btnResetTheme = document.getElementById('btnResetThemeStudio');
+  if (btnResetTheme) {
+    btnResetTheme.addEventListener('click', () => {
+      previewThemeId = 'midnight';
+      previewLayoutId = 'classic';
+      stateManager.updateProfile({
+        themeId: 'midnight',
+        layoutId: 'classic',
+        theme: 'dark'
+      });
+      if (window.ThemeManager) {
+        ThemeManager.apply('midnight', 'classic');
+      }
+      renderAll();
+      showToast('Theme reset to Midnight (Classic) ✓');
+    });
+  }
 
   // Skincare Products Add & Delete
   document.getElementById('btnAddSkincareProduct').addEventListener('click', () => {
