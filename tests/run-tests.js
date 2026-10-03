@@ -236,12 +236,12 @@ it('should restore valid state from backup', () => {
 
 // 8. UPDATE MANAGER & OFFLINE PERSISTENCE TESTS
 console.log('\nTesting UpdateManager & Offline Resilience...');
-it('should instantiate with default package com.nanduprojects.transformation and versionCode 4', () => {
+it('should instantiate with default package com.nanduprojects.transformation and versionCode 5', () => {
   const sm = new StateManager();
   const um = new UpdateManager(sm);
   assert.strictEqual(um.appVersionInfo.packageName, 'com.nanduprojects.transformation');
-  assert.strictEqual(um.appVersionInfo.versionCode, 4);
-  assert.strictEqual(um.appVersionInfo.versionName, '1.2.1');
+  assert.strictEqual(um.appVersionInfo.versionCode, 5);
+  assert.strictEqual(um.appVersionInfo.versionName, '1.3.0');
 });
 
 it('should configure GITHUB_REPO constant correctly', () => {
@@ -266,6 +266,50 @@ it('should safely handle offline mode without errors', async () => {
   const um = new UpdateManager(sm);
   await um.checkForUpdate(false);
   assert.strictEqual(um.isChecking, false);
+});
+
+// 9. TASK RIGHT / WRONG INDEPENDENT TOGGLE TESTS
+console.log('\nTesting Independent Task RIGHT / WRONG Actions...');
+it('should independently toggle RIGHT and WRONG without interfering with subsequent tasks', () => {
+  const sm = new StateManager();
+  const tm = new TaskManager(sm);
+  const dateStr = '2026-10-07';
+
+  const categories = tm.getTasksForDate(dateStr);
+  const tasks = [];
+  categories.forEach(c => c.tasks.forEach(t => tasks.push(t.id)));
+  assert.ok(tasks.length >= 2, 'Should have at least 2 tasks');
+
+  const task1 = tasks[0];
+  const task2 = tasks[1];
+  const task3 = tasks[2];
+
+  // Clicking RIGHT on Task 1 marks it DONE
+  sm.setTaskStatus(dateStr, task1, 'DONE');
+  assert.strictEqual(sm.getRecord(dateStr).tasks[task1], 'DONE');
+  assert.strictEqual(sm.getRecord(dateStr).tasks[task2], undefined);
+
+  // Clicking WRONG on Task 2 does not affect Task 1
+  sm.setTaskStatus(dateStr, task2, 'NOT_DONE');
+  assert.strictEqual(sm.getRecord(dateStr).tasks[task1], 'DONE');
+  assert.strictEqual(sm.getRecord(dateStr).tasks[task2], 'NOT_DONE');
+
+  // Clicking RIGHT on Task 3 does not affect Task 1 or Task 2
+  sm.setTaskStatus(dateStr, task3, 'DONE');
+  assert.strictEqual(sm.getRecord(dateStr).tasks[task1], 'DONE');
+  assert.strictEqual(sm.getRecord(dateStr).tasks[task2], 'NOT_DONE');
+  assert.strictEqual(sm.getRecord(dateStr).tasks[task3], 'DONE');
+
+  // Toggling Task 1 back to PENDING does not change Task 2 or Task 3
+  sm.setTaskStatus(dateStr, task1, 'PENDING');
+  assert.strictEqual(sm.getRecord(dateStr).tasks[task1], 'PENDING');
+  assert.strictEqual(sm.getRecord(dateStr).tasks[task2], 'NOT_DONE');
+  assert.strictEqual(sm.getRecord(dateStr).tasks[task3], 'DONE');
+
+  // Stats calculation matches
+  const stats = tm.calculateStats(dateStr);
+  assert.strictEqual(stats.completed, 1); // task3
+  assert.strictEqual(stats.notCompleted, 1); // task2
 });
 
 console.log(`\n========================================`);

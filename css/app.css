@@ -439,43 +439,52 @@ body {
   color: var(--text-muted);
 }
 
-/* Task Action Buttons (Large, one-hand friendly) */
+/* Task Action Buttons (Large, one-hand friendly RIGHT / WRONG) */
 .task-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  margin-top: 4px;
 }
 
 .btn-task {
   flex: 1;
-  padding: 10px 12px;
-  font-size: 0.85rem;
-  font-weight: 700;
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  font-weight: 800;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
+  border: 1.5px solid var(--border-subtle);
   background: var(--bg-input);
   color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 44px;
+  gap: 8px;
+  min-height: 48px;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.08s ease;
 }
 
-.btn-task.btn-done:hover,
+.btn-task:active {
+  transform: scale(0.97);
+}
+
+.btn-task.btn-task-right.active,
 .btn-task.btn-done.active {
-  background: var(--btn-done-bg);
-  border-color: var(--btn-done-border);
-  color: var(--btn-done-text);
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+  background: #064E3B;
+  border-color: #10B981;
+  color: #34D399;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
 }
 
-.btn-task.btn-not-done:hover,
+.btn-task.btn-task-wrong.active,
 .btn-task.btn-not-done.active {
-  background: var(--btn-not-done-bg);
-  border-color: var(--btn-not-done-border);
-  color: var(--btn-not-done-text);
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+  background: #7F1D1D;
+  border-color: #EF4444;
+  color: #F87171;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
 }
 
 /* Start Workout Button */

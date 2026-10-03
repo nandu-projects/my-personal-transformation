@@ -297,44 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Core Tasks Checklist in all sections ---
-    const categories = taskManager.getTasksForDate(activeDate);
-    const userTasks = record.tasks || {};
-
-    categories.forEach(cat => {
-      const listElem = document.getElementById(`taskList-${cat.id}`);
-      if (!listElem) return;
-
-      listElem.innerHTML = cat.tasks.map(t => {
-        const status = userTasks[t.id] || 'PENDING';
-        let symbol = '⏳';
-        if (status === 'DONE') symbol = '✅';
-        else if (status === 'NOT_DONE') symbol = '❌';
-
-        const isDoneActive = status === 'DONE' ? 'active' : '';
-        const isNotDoneActive = status === 'NOT_DONE' ? 'active' : '';
-
-        return `
-          <div class="task-item" data-task-id="${t.id}">
-            <div class="task-info">
-              <span class="task-status-symbol">${symbol}</span>
-              <div class="task-text">
-                ${t.time ? `<span class="task-time-badge">${t.time}</span>` : ''}
-                <div class="task-title">${t.title}</div>
-                ${t.hint ? `<div class="task-hint">${t.hint}</div>` : ''}
-              </div>
-            </div>
-            <div class="task-actions">
-              <button class="btn-task btn-done ${isDoneActive}" data-action="DONE" data-id="${t.id}">
-                ✅ DONE
-              </button>
-              <button class="btn-task btn-not-done ${isNotDoneActive}" data-action="NOT_DONE" data-id="${t.id}">
-                ❌ NOT DONE
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    });
+    renderTaskLists(activeDate, record);
 
     // Daily Result Section
     resultCompletedVal.textContent = stats.completed;
@@ -379,36 +342,147 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Protein Foods Checklist Helper
+  // Task List Rendering with independent RIGHT and WRONG buttons
+  function renderTaskLists(activeDate, record) {
+    const categories = taskManager.getTasksForDate(activeDate);
+    const userTasks = record.tasks || {};
+
+    categories.forEach(cat => {
+      const listElem = document.getElementById(`taskList-${cat.id}`);
+      if (!listElem) return;
+
+      listElem.innerHTML = cat.tasks.map(t => {
+        const status = userTasks[t.id] || 'PENDING';
+        let symbol = '⏳';
+        if (status === 'DONE') symbol = '✅';
+        else if (status === 'NOT_DONE') symbol = '❌';
+
+        const isRightActive = status === 'DONE' ? 'active' : '';
+        const isWrongActive = status === 'NOT_DONE' ? 'active' : '';
+
+        return `
+          <div class="task-item" data-task-id="${t.id}" id="taskItem-${t.id}">
+            <div class="task-info">
+              <span class="task-status-symbol" id="taskSymbol-${t.id}">${symbol}</span>
+              <div class="task-text">
+                ${t.time ? `<span class="task-time-badge">${t.time}</span>` : ''}
+                <div class="task-title">${t.title}</div>
+                ${t.hint ? `<div class="task-hint">${t.hint}</div>` : ''}
+              </div>
+            </div>
+            <div class="task-actions">
+              <button type="button" class="btn-task btn-task-right ${isRightActive}" data-action="RIGHT" data-task-id="${t.id}">
+                ✅ RIGHT
+              </button>
+              <button type="button" class="btn-task btn-task-wrong ${isWrongActive}" data-action="WRONG" data-task-id="${t.id}">
+                ❌ WRONG
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    });
+  }
+
+  // Real-time Progress Bar & Breakdown Update (Preserves all Task DOM elements!)
+  function updateProgressUI(activeDate) {
+    const stats = taskManager.calculateStats(activeDate);
+    if (homeProgressPercent) homeProgressPercent.textContent = `${stats.percentage}%`;
+    if (homeProgressRatio) homeProgressRatio.textContent = `${stats.completed} / ${stats.total} Tasks`;
+    if (homeProgressBar) homeProgressBar.style.width = `${stats.percentage}%`;
+    if (homeStatCompleted) homeStatCompleted.textContent = stats.completed;
+    if (homeStatNotCompleted) homeStatNotCompleted.textContent = stats.notCompleted;
+    if (homeStatRemaining) homeStatRemaining.textContent = stats.remaining;
+
+    if (resultCompletedVal) resultCompletedVal.textContent = stats.completed;
+    if (resultNotCompletedVal) resultNotCompletedVal.textContent = stats.notCompleted;
+    if (resultRemainingVal) resultRemainingVal.textContent = stats.remaining;
+    if (resultPercentVal) resultPercentVal.textContent = `${stats.percentage}%`;
+  }
+
+  // Completely independent Task Action handler (No destructive DOM re-renders!)
+  function handleTaskAction(taskId, action) {
+    const state = stateManager.getState();
+    const activeDate = state.activeDate;
+    const record = stateManager.getRecord(activeDate);
+    const userTasks = record.tasks || {};
+    const currentStatus = userTasks[taskId] || 'PENDING';
+
+    let newStatus = 'PENDING';
+    if (action === 'RIGHT') {
+      newStatus = currentStatus === 'DONE' ? 'PENDING' : 'DONE';
+    } else if (action === 'WRONG') {
+      newStatus = currentStatus === 'NOT_DONE' ? 'PENDING' : 'NOT_DONE';
+    }
+
+    // 1. Auto-save status in StateManager immediately
+    stateManager.setTaskStatus(activeDate, taskId, newStatus);
+
+    // 2. Update ONLY this task in the DOM (preserves other task buttons!)
+    const taskItem = document.getElementById(`taskItem-${taskId}`) || document.querySelector(`.task-item[data-task-id="${taskId}"]`);
+    if (taskItem) {
+      const btnRight = taskItem.querySelector('.btn-task-right');
+      const btnWrong = taskItem.querySelector('.btn-task-wrong');
+      const symbolEl = taskItem.querySelector('.task-status-symbol');
+
+      if (btnRight) btnRight.classList.toggle('active', newStatus === 'DONE');
+      if (btnWrong) btnWrong.classList.toggle('active', newStatus === 'NOT_DONE');
+      if (symbolEl) {
+        symbolEl.textContent = newStatus === 'DONE' ? '✅' : (newStatus === 'NOT_DONE' ? '❌' : '⏳');
+      }
+    }
+
+    // 3. Update Progress Bar & Hero Counters
+    updateProgressUI(activeDate);
+
+    // 4. Toast
+    if (newStatus === 'DONE') {
+      showToast('Marked RIGHT ✅');
+    } else if (newStatus === 'NOT_DONE') {
+      showToast('Marked WRONG ❌');
+    } else {
+      showToast('Reset to pending ⏳');
+    }
+  }
+
+  // Protein Foods Checklist Helper with Affordable Staples & Optional Choices
   function renderProteinFoodsList(state, record, activeDate) {
     const container = document.getElementById('proteinFoodsListContainer');
     if (!container) return;
 
-    const foods = state.proteinFoodsList || [];
+    const foods = state.proteinFoodsList || DEFAULT_PROTEIN_FOODS;
     const eatenMap = record.proteinFoodsEaten || {};
 
     container.innerHTML = foods.map(f => {
       const entry = eatenMap[f.id] || { eaten: false, qty: f.defaultQty };
-      const isEaten = entry.eaten;
+      const isEaten = !!entry.eaten;
       const rowClass = isEaten ? 'eaten' : '';
       const checkedAttr = isEaten ? 'checked' : '';
+      const badgeText = f.isAffordable ? 'Affordable Staple' : 'Optional Choice';
+      const badgeStyle = f.isAffordable ? 'color: var(--color-brand);' : 'color: var(--text-muted);';
 
       return `
-        <div class="protein-food-row ${rowClass}" data-id="${f.id}">
-          <label class="protein-food-info">
-            <input type="checkbox" ${checkedAttr} class="cb-protein-food" data-id="${f.id}">
-            <span>${f.icon || '🥚'} ${f.name}</span>
+        <div class="protein-food-row ${rowClass}" data-id="${f.id}" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); margin-bottom: 6px;">
+          <label class="protein-food-info" style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1;">
+            <input type="checkbox" ${checkedAttr} class="cb-protein-food" data-id="${f.id}" style="width: 18px; height: 18px; accent-color: var(--color-brand); cursor: pointer;">
+            <div>
+              <span style="font-weight: 600; font-size: 0.88rem;">${f.icon || '🥚'} ${f.name}</span>
+              <div style="font-size: 0.72rem; ${badgeStyle} font-weight: 600;">${badgeText}</div>
+            </div>
           </label>
-          <div class="protein-qty-wrap">
+          <div class="protein-qty-wrap" style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--text-muted);">
             <span>Qty:</span>
-            <input type="text" class="protein-qty-input" data-id="${f.id}" value="${entry.qty !== undefined ? entry.qty : f.defaultQty}">
+            <input type="text" class="protein-qty-input" data-id="${f.id}" value="${entry.qty !== undefined ? entry.qty : f.defaultQty}" style="width: 65px; padding: 4px 6px; text-align: center; background: var(--bg-surface); border: 1px solid var(--border-subtle); color: var(--text-primary); border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600;">
             <span>${f.unit}</span>
           </div>
         </div>
       `;
     }).join('');
 
-    // Checkbox and quantity listeners
+    // Update Summary Display
+    updateProteinSummary(foods, eatenMap, state, record, activeDate);
+
+    // Event listeners
     container.querySelectorAll('.cb-protein-food').forEach(cb => {
       cb.onchange = (e) => {
         const id = e.target.dataset.id;
@@ -422,7 +496,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (hasAnyEaten && record.tasks?.task_protein_food !== 'DONE') {
           stateManager.setTaskStatus(activeDate, 'task_protein_food', 'DONE');
         }
-        renderAll();
+        renderProteinFoodsList(state, record, activeDate);
+        updateProgressUI(activeDate);
       };
     });
 
@@ -433,8 +508,44 @@ document.addEventListener('DOMContentLoaded', () => {
         const curEntry = curMap[id] || {};
         curMap[id] = { ...curEntry, qty: e.target.value.trim() };
         stateManager.updateRecord(activeDate, { proteinFoodsEaten: curMap });
+        updateProteinSummary(foods, curMap, state, record, activeDate);
       };
     });
+  }
+
+  function updateProteinSummary(foods, eatenMap, state, record, activeDate) {
+    const selectedNames = [];
+    let approxTotalG = 0;
+
+    foods.forEach(f => {
+      const entry = eatenMap[f.id];
+      if (entry && entry.eaten) {
+        const qtyNum = parseFloat(entry.qty) || f.defaultQty;
+        const proteinMultiplier = f.proteinG || 1;
+        const proteinFromFood = Math.round(qtyNum * proteinMultiplier);
+        selectedNames.push(`${f.name} (~${proteinFromFood}g)`);
+        approxTotalG += proteinFromFood;
+      }
+    });
+
+    const lblSelected = document.getElementById('lblProteinSelectedList');
+    const lblApprox = document.getElementById('lblProteinApproxTotal');
+    const lblTarget = document.getElementById('lblProteinTargetDisplay');
+
+    if (lblSelected) {
+      lblSelected.textContent = selectedNames.length > 0 ? selectedNames.join(', ') : 'None yet';
+    }
+    if (lblApprox) {
+      lblApprox.textContent = `~${approxTotalG}g`;
+    }
+    if (lblTarget) {
+      lblTarget.textContent = `${state.targets?.proteinTargetG || 70}g`;
+    }
+
+    if (approxTotalG > 0 && (!record.proteinConsumedG || record.proteinConsumedG === 0)) {
+      document.getElementById('inputProteinConsumed').value = approxTotalG;
+      stateManager.updateRecord(activeDate, { proteinConsumedG: approxTotalG });
+    }
   }
 
   // Hair Care Section Helper
@@ -787,20 +898,16 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(`Challenge set to ${type === 'unlimited' ? 'Ongoing' : days + ' Days'}`);
   });
 
-  // Task Buttons Delegation (✅ DONE / ❌ NOT DONE)
+  // Task Buttons Delegation (✅ RIGHT / ❌ WRONG)
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('.btn-task');
     if (!btn) return;
-    const action = btn.dataset.action; // 'DONE' or 'NOT_DONE'
-    const taskId = btn.dataset.id;
-    const activeDate = stateManager.getState().activeDate;
-    const currentRec = stateManager.getRecord(activeDate);
-
-    const currentStatus = currentRec.tasks ? currentRec.tasks[taskId] : 'PENDING';
-    const newStatus = currentStatus === action ? 'PENDING' : action;
-
-    stateManager.setTaskStatus(activeDate, taskId, newStatus);
-    renderAll();
+    e.preventDefault();
+    e.stopPropagation();
+    const taskId = btn.dataset.taskId || btn.dataset.id;
+    const action = btn.dataset.action; // 'RIGHT' or 'WRONG'
+    if (!taskId || !action) return;
+    handleTaskAction(taskId, action);
   });
 
   // Morning Skincare Checkboxes

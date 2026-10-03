@@ -65,16 +65,16 @@ class TaskManager {
       ]
     });
 
-    // 4. 🍗 NUTRITION & DINNER
+    // 4. 🥗 NUTRITION & AFFORDABLE PROTEIN
     categories.push({
       id: 'nutrition',
-      title: 'Nutrition & Weight Gain',
-      icon: '🍗',
-      description: 'Healthy whole foods, clean protein, and consistent calories for muscle gain.',
+      title: 'Nutrition & Affordable Protein',
+      icon: '🥗',
+      description: 'Affordable student-friendly whole foods, budget protein & nourishing meals.',
       tasks: [
-        { id: 'task_protein_food', title: 'Did you eat a protein food today?', time: 'All Day', hint: 'Eggs / Milk / Curd / Chicken / Dal / Soy / Peanuts / Paneer' },
+        { id: 'task_protein_food', title: 'Affordable protein eaten', time: 'All Day', hint: 'Eggs / Dal / Soy chunks / Peanuts / Milk (or optional meat/fish)' },
         { id: 'task_cook_dinner', title: 'Dinner prepared', time: times.cookDinner || '07:00 PM', hint: 'Self-cooked nourishing dinner' },
-        { id: 'task_dinner', title: 'Dinner eaten', time: times.dinner || '07:30–08:30 PM', hint: 'Balanced meal with protein and vegetables' }
+        { id: 'task_dinner', title: 'Balanced dinner eaten', time: times.dinner || '07:30–08:30 PM', hint: 'Rice/Roti, Dal, and seasonal vegetables' }
       ]
     });
 

@@ -59,22 +59,22 @@ const DEFAULT_SCHEDULE_TIMES = {
 };
 
 const DEFAULT_FOOD_OPTIONS = {
-  breakfast: ['2–3 Eggs', 'Oats', 'Milk', 'Banana', 'Idli / Dosa', 'Roti', 'Peanuts'],
-  lunch: ['Rice / Roti', 'Dal', 'Vegetables', 'Chicken / Egg / Paneer / Soy', 'Curd'],
-  snack: ['Banana', 'Milk', 'Curd', 'Peanuts', 'Eggs', 'Fruit', 'Other'],
-  dinner: ['Rice / Roti', 'Dal', 'Vegetables', 'Chicken / Eggs / Paneer / Soy', 'Curd']
+  breakfast: ['Eggs', 'Idli / Dosa', 'Oats', 'Banana', 'Roti', 'Ragi porridge'],
+  lunch: ['Rice / Roti', 'Dal', 'Seasonal Vegetables', 'Optional: Egg / Soy / Chicken'],
+  snack: ['Banana / Fruit', 'Eggs', 'Peanuts / Groundnuts', 'Milk (when affordable)'],
+  dinner: ['Rice / Roti', 'Dal', 'Seasonal Vegetables', 'Optional: Egg / Soy / Chicken']
 };
 
 const DEFAULT_PROTEIN_FOODS = [
-  { id: 'pf_eggs', name: 'Eggs', icon: '🥚', unit: 'count', defaultQty: 2 },
-  { id: 'pf_milk', name: 'Milk', icon: '🥛', unit: 'ml', defaultQty: 250 },
-  { id: 'pf_curd', name: 'Curd', icon: '🥣', unit: 'serving', defaultQty: 1 },
-  { id: 'pf_chicken', name: 'Chicken', icon: '🍗', unit: 'g', defaultQty: 150 },
-  { id: 'pf_dal', name: 'Dal', icon: '🫘', unit: 'serving', defaultQty: 1 },
-  { id: 'pf_soy', name: 'Soy chunks', icon: '🫘', unit: 'g', defaultQty: 40 },
-  { id: 'pf_peanuts', name: 'Peanuts', icon: '🥜', unit: 'g', defaultQty: 30 },
-  { id: 'pf_paneer', name: 'Paneer', icon: '🧀', unit: 'g', defaultQty: 100 },
-  { id: 'pf_fish', name: 'Fish (optional)', icon: '🐟', unit: 'g', defaultQty: 120 }
+  { id: 'pf_eggs', name: 'Eggs', icon: '🥚', unit: 'count', defaultQty: 2, proteinG: 6, isAffordable: true },
+  { id: 'pf_dal', name: 'Dal', icon: '🫘', unit: 'serving', defaultQty: 1, proteinG: 7, isAffordable: true },
+  { id: 'pf_soy', name: 'Soy chunks', icon: '🫘', unit: 'g', defaultQty: 40, proteinG: 0.52, isAffordable: true },
+  { id: 'pf_peanuts', name: 'Peanuts / Groundnuts', icon: '🥜', unit: 'g', defaultQty: 30, proteinG: 0.25, isAffordable: true },
+  { id: 'pf_milk', name: 'Milk (optional/affordable)', icon: '🥛', unit: 'ml', defaultQty: 250, proteinG: 0.032, isAffordable: false },
+  { id: 'pf_curd', name: 'Curd (optional)', icon: '🥣', unit: 'serving', defaultQty: 1, proteinG: 5, isAffordable: false },
+  { id: 'pf_paneer', name: 'Paneer (optional)', icon: '🧀', unit: 'g', defaultQty: 100, proteinG: 0.18, isAffordable: false },
+  { id: 'pf_chicken', name: 'Chicken / Meat (optional)', icon: '🍗', unit: 'g', defaultQty: 150, proteinG: 0.25, isAffordable: false },
+  { id: 'pf_fish', name: 'Fish (optional)', icon: '🐟', unit: 'g', defaultQty: 120, proteinG: 0.22, isAffordable: false }
 ];
 
 const DEFAULT_ROUTINE = [
