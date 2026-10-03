@@ -236,12 +236,28 @@ it('should restore valid state from backup', () => {
 
 // 8. UPDATE MANAGER & OFFLINE PERSISTENCE TESTS
 console.log('\nTesting UpdateManager & Offline Resilience...');
-it('should instantiate with default package com.nanduprojects.transformation and versionCode 2', () => {
+it('should instantiate with default package com.nanduprojects.transformation and versionCode 3', () => {
   const sm = new StateManager();
   const um = new UpdateManager(sm);
   assert.strictEqual(um.appVersionInfo.packageName, 'com.nanduprojects.transformation');
-  assert.strictEqual(um.appVersionInfo.versionCode, 2);
-  assert.strictEqual(um.appVersionInfo.versionName, '1.1.0');
+  assert.strictEqual(um.appVersionInfo.versionCode, 3);
+  assert.strictEqual(um.appVersionInfo.versionName, '1.2.0');
+});
+
+it('should configure GITHUB_REPO constant correctly', () => {
+  const { GITHUB_REPO } = require('../js/update.js');
+  assert.strictEqual(GITHUB_REPO, 'nandu-projects/my-personal-transformation');
+});
+
+it('should accurately compare semantic versions from GitHub Release tags', () => {
+  const sm = new StateManager();
+  const um = new UpdateManager(sm);
+  assert.strictEqual(um.compareSemVer('1.3.0', '1.2.0'), 1);
+  assert.strictEqual(um.compareSemVer('v1.2.1', '1.2.0'), 1);
+  assert.strictEqual(um.compareSemVer('v2.0.0', '1.9.9'), 1);
+  assert.strictEqual(um.compareSemVer('v1.2.0', '1.2.0'), 0);
+  assert.strictEqual(um.compareSemVer('1.1.0', '1.2.0'), -1);
+  assert.strictEqual(um.compareSemVer('1.2.0', '1.2.1'), -1);
 });
 
 it('should safely handle offline mode without errors', async () => {

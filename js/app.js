@@ -716,6 +716,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const lblVersion = document.getElementById('lblInstalledVersion');
     if (lblVersion && updateManager && updateManager.appVersionInfo) {
       lblVersion.textContent = `v${updateManager.appVersionInfo.versionName} (Build ${updateManager.appVersionInfo.versionCode})`;
+      updateManager.updateStatusDisplay();
     }
   }
 
