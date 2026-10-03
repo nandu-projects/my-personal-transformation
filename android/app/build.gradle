@@ -18,7 +18,15 @@ android {
     }
     signingConfigs {
         release {
-            initWith(signingConfigs.debug)
+            def ksFile = file('release.keystore')
+            if (ksFile.exists()) {
+                storeFile ksFile
+                storePassword(System.getenv("RELEASE_KEYSTORE_PASSWORD") ?: "nanduprojects")
+                keyAlias(System.getenv("RELEASE_KEY_ALIAS") ?: "transformation")
+                keyPassword(System.getenv("RELEASE_KEY_PASSWORD") ?: "nanduprojects")
+            } else {
+                initWith(signingConfigs.debug)
+            }
         }
     }
     buildTypes {
