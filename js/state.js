@@ -59,18 +59,19 @@ const DEFAULT_SCHEDULE_TIMES = {
 };
 
 const DEFAULT_FOOD_OPTIONS = {
-  breakfast: ['Eggs', 'Idli / Dosa', 'Oats', 'Banana', 'Roti / Chapati', 'Ragi porridge'],
+  breakfast: ['Eggs', 'Idli / Dosa', 'Oats', 'Roti / Chapati', 'Ragi porridge'],
   lunch: ['Rice', 'Roti / Chapati', 'Dal', 'Seasonal Vegetables', 'Optional: Egg / Soy / Chicken'],
-  snack: ['Banana', 'Boiled Eggs', 'Peanuts / Groundnuts', 'Oats / Ragi'],
+  snack: ['Boiled Eggs', 'Peanuts / Groundnuts', 'Oats / Ragi'],
   dinner: ['Rice', 'Roti / Chapati', 'Dal', 'Seasonal Vegetables', 'Optional: Egg / Soy / Chicken']
 };
 
 const DEFAULT_PROTEIN_FOODS = [
-  { id: 'pf_eggs', name: 'Eggs', icon: '🥚', unit: 'count', defaultQty: 2, proteinG: 6, isAffordable: true },
-  { id: 'pf_dal', name: 'Dal', icon: '🫘', unit: 'serving', defaultQty: 1, proteinG: 7, isAffordable: true },
-  { id: 'pf_soy', name: 'Soy chunks', icon: '🫘', unit: 'g', defaultQty: 40, proteinG: 0.52, isAffordable: true },
-  { id: 'pf_peanuts', name: 'Peanuts / Groundnuts', icon: '🥜', unit: 'g', defaultQty: 30, proteinG: 0.25, isAffordable: true },
-  { id: 'pf_chicken', name: 'Chicken / Meat (optional)', icon: '🍗', unit: 'g', defaultQty: 150, proteinG: 0.25, isAffordable: false }
+  { id: 'pf_eggs', name: 'Eggs', icon: '🥚' },
+  { id: 'pf_dal', name: 'Dal', icon: '🫘' },
+  { id: 'pf_soy', name: 'Soy chunks', icon: '🫘' },
+  { id: 'pf_peanuts', name: 'Peanuts', icon: '🥜' },
+  { id: 'pf_milk', name: 'Milk', icon: '🥛' },
+  { id: 'pf_chicken', name: 'Chicken / Meat', icon: '🍗' }
 ];
 
 const DEFAULT_ROUTINE = [
@@ -176,8 +177,8 @@ class StateManager {
     merged.skincareProducts = saved.skincareProducts || DEFAULT_STATE.skincareProducts;
     merged.cookingTasks = saved.cookingTasks || DEFAULT_STATE.cookingTasks;
 
-    // Filter out Paneer, Curd, Fish, Fruit from any previously saved data
-    const forbidden = ['paneer', 'curd', 'fish', 'fruit'];
+    // Filter out Paneer, Curd, Fish, Fruit, Banana from any previously saved data
+    const forbidden = ['paneer', 'curd', 'fish', 'fruit', 'banana'];
     const filterForbidden = (arr) => (arr || []).filter(item => {
       const lower = String(item).toLowerCase();
       return !forbidden.some(f => lower.includes(f));
@@ -190,12 +191,17 @@ class StateManager {
       dinner: filterForbidden(saved.foodOptions?.dinner || DEFAULT_FOOD_OPTIONS.dinner)
     };
 
-    merged.proteinFoodsList = (saved.proteinFoodsList || DEFAULT_PROTEIN_FOODS).filter(p => {
-      const lower = ((p.name || '') + ' ' + (p.id || '')).toLowerCase();
-      return !forbidden.some(f => lower.includes(f));
-    });
-    if (merged.proteinFoodsList.length === 0) {
+    // In v1.5.0: Simplified 6 protein food choices (Eggs, Dal, Soy chunks, Peanuts, Milk, Chicken / Meat)
+    if (!saved.proteinFoodsList || saved.proteinFoodsList.some(p => p.proteinG !== undefined) || !saved.proteinFoodsList.some(p => p.id === 'pf_milk')) {
       merged.proteinFoodsList = DEFAULT_PROTEIN_FOODS;
+    } else {
+      merged.proteinFoodsList = saved.proteinFoodsList.filter(p => {
+        const lower = ((p.name || '') + ' ' + (p.id || '')).toLowerCase();
+        return !forbidden.some(f => lower.includes(f));
+      });
+      if (merged.proteinFoodsList.length === 0) {
+        merged.proteinFoodsList = DEFAULT_PROTEIN_FOODS;
+      }
     }
     merged.timetable = saved.timetable || DEFAULT_STATE.timetable;
     merged.dailyRoutine = saved.dailyRoutine || DEFAULT_STATE.dailyRoutine;
@@ -267,6 +273,7 @@ class StateManager {
       skinMorningSteps: { wash: false, moisturizer: false, sunscreen: false },
       skinNightSteps: { wash: false, moisturizer: false },
       hairSteps: { morningComb: false, morningPullAvoid: false, nightClean: false, nightWetAvoid: false, shampoo: false, conditioner: false },
+      mealsEaten: { breakfast: false, lunch: false, dinner: false },
       cookingDone: { breakfast: false, lunch: false, dinner: false },
       notes: '',
       saved: false,

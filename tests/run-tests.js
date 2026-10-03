@@ -236,12 +236,12 @@ it('should restore valid state from backup', () => {
 
 // 8. UPDATE MANAGER & OFFLINE PERSISTENCE TESTS
 console.log('\nTesting UpdateManager & Offline Resilience...');
-it('should instantiate with default package com.nanduprojects.transformation and versionCode 7', () => {
+it('should instantiate with default package com.nanduprojects.transformation and versionCode 8', () => {
   const sm = new StateManager();
   const um = new UpdateManager(sm);
   assert.strictEqual(um.appVersionInfo.packageName, 'com.nanduprojects.transformation');
-  assert.strictEqual(um.appVersionInfo.versionCode, 7);
-  assert.strictEqual(um.appVersionInfo.versionName, '1.4.0');
+  assert.strictEqual(um.appVersionInfo.versionCode, 8);
+  assert.strictEqual(um.appVersionInfo.versionName, '1.5.0');
 });
 
 it('should configure GITHUB_REPO constant correctly', () => {
@@ -367,7 +367,7 @@ it('should verify Paneer, Curd, Fish, and Fruit are completely absent from state
   const tm = new TaskManager(sm);
   const state = sm.getState();
 
-  const forbiddenFoods = ['paneer', 'curd', 'fish', 'fruit'];
+  const forbiddenFoods = ['paneer', 'curd', 'fish', 'fruit', 'banana'];
 
   // 1. Check DEFAULT_FOOD_OPTIONS / state.foodOptions
   Object.keys(state.foodOptions).forEach(meal => {
@@ -399,6 +399,65 @@ it('should verify Paneer, Curd, Fish, and Fruit are completely absent from state
       });
     });
   });
+});
+
+it('should verify weight and protein gram tracking are completely absent from index.html', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+
+  // No Today's Weight input or kg field
+  assert.ok(!html.includes('inputTodayWeight'), 'index.html must not contain inputTodayWeight');
+  assert.ok(!html.includes("Today's Weight"), 'index.html must not contain Today\'s Weight');
+  
+  // No protein gram trackers, targets, or buttons
+  assert.ok(!html.includes('inputProteinConsumed'), 'index.html must not contain inputProteinConsumed');
+  assert.ok(!html.includes('btnAddProtein10'), 'index.html must not contain btnAddProtein10');
+  assert.ok(!html.includes('btnAddProtein20'), 'index.html must not contain btnAddProtein20');
+  assert.ok(!html.includes('btnAddProtein30'), 'index.html must not contain btnAddProtein30');
+  assert.ok(!html.includes('btnResetProtein'), 'index.html must not contain btnResetProtein');
+  assert.ok(!html.includes('settingProteinTarget'), 'index.html must not contain settingProteinTarget in Settings');
+  assert.ok(!html.includes('lblProteinApproxTotal'), 'index.html must not contain approx protein total');
+  assert.ok(!html.includes('lblProteinTargetDisplay'), 'index.html must not contain protein target display');
+
+  // Verify regular meals checkboxes exist
+  assert.ok(html.includes('cbMealBfast'), 'index.html must contain cbMealBfast');
+  assert.ok(html.includes('cbMealLunch'), 'index.html must contain cbMealLunch');
+  assert.ok(html.includes('cbMealDinner'), 'index.html must contain cbMealDinner');
+  assert.ok(html.includes('Breakfast eaten'), 'index.html must contain "Breakfast eaten"');
+  assert.ok(html.includes('Lunch eaten'), 'index.html must contain "Lunch eaten"');
+  assert.ok(html.includes('Dinner eaten'), 'index.html must contain "Dinner eaten"');
+
+  // Verify Food reminder note exists
+  assert.ok(html.includes('Food reminder:'), 'index.html must contain food reminder');
+  assert.ok(html.includes('What protein food did you eat today?'), 'index.html must contain protein question');
+});
+
+it('should verify the 6 canonical protein foods are configured in state without gram units', () => {
+  const sm = new StateManager();
+  const state = sm.getState();
+  const foods = state.proteinFoodsList;
+
+  assert.strictEqual(foods.length, 6, 'Must have exactly 6 protein food options');
+  const expectedNames = ['Eggs', 'Dal', 'Soy chunks', 'Peanuts', 'Milk', 'Chicken / Meat'];
+  expectedNames.forEach(name => {
+    const found = foods.some(f => f.name.includes(name) || name.includes(f.name));
+    assert.ok(found, `Expected protein food "${name}" in proteinFoodsList`);
+  });
+
+  // Verify no grams/units/target multipliers are defined
+  foods.forEach(f => {
+    assert.strictEqual(f.proteinG, undefined, `Food ${f.name} should not have proteinG`);
+    assert.strictEqual(f.unit, undefined, `Food ${f.name} should not have unit`);
+  });
+});
+
+it('should verify build.gradle versionCode is 8 and versionName is 1.5.0', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const gradle = fs.readFileSync(path.join(__dirname, '..', 'android', 'app', 'build.gradle'), 'utf8');
+  assert.ok(gradle.includes('versionCode 8'), 'build.gradle must have versionCode 8');
+  assert.ok(gradle.includes('versionName "1.5.0"'), 'build.gradle must have versionName "1.5.0"');
 });
 
 it('should test consecutive independent toggling of every task button', () => {

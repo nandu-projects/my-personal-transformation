@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#0F172A">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="icons/favicon.png">
-  <link rel="stylesheet" href="css/app.css?v=1.4.0">
+  <link rel="stylesheet" href="css/app.css?v=1.5.0">
   <script>
     // Invalidate stale WebView cache and unregister legacy service workers
     if ('serviceWorker' in navigator) {
@@ -216,11 +216,11 @@
         </div>
       </section>
 
-      <!-- 5. 🍌 AFTER COLLEGE & STUDY SECTION -->
+      <!-- 5. 🥪 AFTER COLLEGE & STUDY SECTION -->
       <section class="section-card" id="cat-after-college">
         <div class="section-head collapsible" data-target="body-after-college">
           <div class="section-title-wrap">
-            <span class="section-icon">🍌</span>
+            <span class="section-icon">🥪</span>
             <div>
               <h2 class="section-title">After College & Study</h2>
               <div class="section-desc" style="margin-bottom: 0;">Evening snack, hydration, and academic focus</div>
@@ -233,7 +233,7 @@
           <!-- Evening Snack Selector -->
           <div class="substep-card" style="margin-top: 8px;">
             <div class="substep-header">
-              <strong style="color: var(--text-primary); font-size: 0.85rem;">🍌 Evening Snack (<span id="lblTimeSnack">04:30–05:30 PM</span>)</strong>
+              <strong style="color: var(--text-primary); font-size: 0.85rem;">🥪 Evening Snack (<span id="lblTimeSnack">04:30–05:30 PM</span>)</strong>
               <span style="font-size: 0.72rem; color: var(--text-muted);">Optional options:</span>
             </div>
             <div class="food-checkbox-grid" id="snackFoodsGrid"></div>
@@ -298,85 +298,62 @@
         </div>
       </section>
 
-      <!-- 6. 🥗 NUTRITION & AFFORDABLE PROTEIN -->
+      <!-- 6. 🥗 NUTRITION SECTION -->
       <section class="section-card" id="cat-nutrition">
         <div class="section-head collapsible" data-target="body-nutrition">
           <div class="section-title-wrap">
             <span class="section-icon">🥗</span>
             <div>
               <h2 class="section-title">Nutrition</h2>
-              <div class="section-desc" style="margin-bottom: 0;">Student-friendly whole foods, protein tracking & balanced meals</div>
+              <div class="section-desc" style="margin-bottom: 0;">Eat regular meals and choose affordable protein when available.</div>
             </div>
           </div>
           <span class="section-chevron">▼</span>
         </div>
 
         <div class="section-body" id="body-nutrition">
-          <!-- Weight & Protein Tracker Summary -->
-          <div class="metric-row" style="margin-top: 8px;">
-            <span class="metric-label">Today's Weight:</span>
-            <div class="metric-input-wrap">
-              <input type="number" id="inputTodayWeight" class="metric-input" step="0.1" placeholder="60.0">
-              <span style="font-size: 0.85rem; color: var(--text-muted);">kg</span>
+          <!-- Regular Meals Checkboxes -->
+          <div class="substep-card" style="margin-top: 8px;">
+            <div class="substep-header">
+              <strong style="font-size: 0.88rem; color: var(--text-primary);">Regular Meals</strong>
             </div>
-          </div>
-
-          <div class="metric-row">
-            <span class="metric-label">Daily Protein:</span>
-            <div class="metric-input-wrap">
-              <input type="number" id="inputProteinConsumed" class="metric-input" placeholder="0">
-              <span style="font-size: 0.85rem; color: var(--text-muted);">/ <span id="lblProteinTarget">70</span> g</span>
+            <div class="substep-list">
+              <label class="substep-item" id="lblMealBfast">
+                <span>Breakfast eaten</span>
+                <input type="checkbox" id="cbMealBfast">
+              </label>
+              <label class="substep-item" id="lblMealLunch">
+                <span>Lunch eaten</span>
+                <input type="checkbox" id="cbMealLunch">
+              </label>
+              <label class="substep-item" id="lblMealDinner">
+                <span>Dinner eaten</span>
+                <input type="checkbox" id="cbMealDinner">
+              </label>
             </div>
-          </div>
-
-          <div class="btn-group-chips">
-            <button class="btn-chip" id="btnAddProtein10">+10g</button>
-            <button class="btn-chip" id="btnAddProtein20">+20g</button>
-            <button class="btn-chip" id="btnAddProtein30">+30g</button>
-            <button class="btn-chip chip-reset" id="btnResetProtein">Reset</button>
           </div>
 
           <!-- Affordable Protein Section -->
           <div class="substep-card">
             <div class="substep-header">
-              <strong style="font-size: 0.88rem; color: var(--text-primary);">Protein Sources:</strong>
-              <span style="font-size: 0.72rem; color: var(--color-brand); font-weight: 700;">Affordable</span>
+              <strong style="font-size: 0.88rem; color: var(--text-primary);">🥗 Food / Protein</strong>
             </div>
-            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">
-              Eggs, Dal, Soy chunks, Peanuts/Groundnuts, or optional Chicken/Meat.
+            <div style="font-size: 0.82rem; color: var(--text-primary); font-weight: 600; margin-bottom: 6px;">
+              What protein food did you eat today?
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4;">
+              Choose 1–2 protein foods you can afford today.<br>
+              Eggs, dal and soy chunks are affordable options.<br>
+              You don't need every option.
             </div>
             <div class="protein-food-list" id="proteinFoodsListContainer"></div>
-            
-            <div style="margin-top: 10px; padding: 8px 10px; background: rgba(255, 255, 255, 0.03); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.8rem;">
-              <div style="color: var(--text-muted); margin-bottom: 4px;">Selected Today: <span id="lblProteinSelectedList" style="color: var(--text-primary); font-weight: 600;">None yet</span></div>
-              <div style="color: var(--text-muted);">Approx. Protein: <strong id="lblProteinApproxTotal" style="color: var(--color-brand);">0g</strong> (Target: <span id="lblProteinTargetDisplay">70g</span>)</div>
-            </div>
           </div>
 
-          <!-- Cooking & Dinner Checklist -->
-          <div class="substep-card">
-            <div class="substep-header">
-              <strong style="font-size: 0.85rem; color: var(--text-primary);">🍳 Self-Cooking Status:</strong>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px;">
-              <label class="substep-item" id="lblCookBfast">
-                <span>Breakfast</span>
-                <input type="checkbox" id="cbCookBfast">
-              </label>
-              <label class="substep-item" id="lblCookLunch">
-                <span>Lunch</span>
-                <input type="checkbox" id="cbCookLunch">
-              </label>
-              <label class="substep-item" id="lblCookDinner">
-                <span>Dinner</span>
-                <input type="checkbox" id="cbCookDinner">
-              </label>
-            </div>
-
-            <div class="substep-header">
-              <strong style="font-size: 0.85rem; color: var(--text-primary);">🍚 Dinner Options (<span id="lblTimeDinner">07:30–08:30 PM</span>):</strong>
-            </div>
-            <div class="food-checkbox-grid" id="dinnerFoodsGrid"></div>
+          <!-- Food Reminder -->
+          <div style="padding: 10px 12px; background: rgba(255, 255, 255, 0.03); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 8px;">
+            💡 <strong>Food reminder:</strong><br>
+            Eat regular meals: breakfast + lunch + dinner.<br>
+            Choose affordable protein when available.
           </div>
 
           <div class="task-list" id="taskList-nutrition"></div>
@@ -661,10 +638,6 @@
           <input type="number" id="settingWaterTarget" class="form-control" step="0.25" style="width: 100px;">
         </div>
         <div class="form-row">
-          <label class="form-label" for="settingProteinTarget">Protein Target (g)</label>
-          <input type="number" id="settingProteinTarget" class="form-control" style="width: 100px;">
-        </div>
-        <div class="form-row">
           <label class="form-label" for="settingStudyTarget">Study Target (mins)</label>
           <input type="number" id="settingStudyTarget" class="form-control" style="width: 100px;">
         </div>
@@ -735,11 +708,11 @@
         <h3>🚀 App Updates</h3>
         <div class="form-row">
           <span class="form-label">Current version</span>
-          <strong id="lblInstalledVersion" style="color: var(--color-brand);">v1.4.0 (Build 7)</strong>
+          <strong id="lblInstalledVersion" style="color: var(--color-brand);">v1.5.0 (Build 8)</strong>
         </div>
         <div class="form-row">
           <span class="form-label">Update status</span>
-          <span id="lblUpdateStatus" style="font-size: 0.82rem; color: var(--color-success); font-weight: 600;">Update system v1.4.0</span>
+          <span id="lblUpdateStatus" style="font-size: 0.82rem; color: var(--color-success); font-weight: 600;">Update system v1.5.0</span>
         </div>
         <div class="form-row">
           <span class="form-label">Update source</span>
@@ -905,14 +878,14 @@
   <div class="toast" id="toastMessage">Action Saved</div>
 
   <!-- Scripts with cache busters to prevent stale WebView script loading -->
-  <script src="js/state.js?v=1.4.0"></script>
-  <script src="js/tasks.js?v=1.4.0"></script>
-  <script src="js/workout.js?v=1.4.0"></script>
-  <script src="js/timetable.js?v=1.4.0"></script>
-  <script src="js/routine.js?v=1.4.0"></script>
-  <script src="js/history.js?v=1.4.0"></script>
-  <script src="js/backup.js?v=1.4.0"></script>
-  <script src="js/update.js?v=1.4.0"></script>
-  <script src="js/app.js?v=1.4.0"></script>
+  <script src="js/state.js?v=1.5.0"></script>
+  <script src="js/tasks.js?v=1.5.0"></script>
+  <script src="js/workout.js?v=1.5.0"></script>
+  <script src="js/timetable.js?v=1.5.0"></script>
+  <script src="js/routine.js?v=1.5.0"></script>
+  <script src="js/history.js?v=1.5.0"></script>
+  <script src="js/backup.js?v=1.5.0"></script>
+  <script src="js/update.js?v=1.5.0"></script>
+  <script src="js/app.js?v=1.5.0"></script>
 </body>
 </html>

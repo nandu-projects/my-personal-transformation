@@ -15,8 +15,8 @@ class UpdateManager {
     this.progressListenerAttached = false;
     this.appVersionInfo = {
       packageName: 'com.nanduprojects.transformation',
-      versionName: '1.4.0',
-      versionCode: 7
+      versionName: '1.5.0',
+      versionCode: 8
     };
   }
 
@@ -349,7 +349,7 @@ class UpdateManager {
         lblStatus.textContent = 'Offline';
         lblStatus.style.color = 'var(--text-muted)';
       } else {
-        lblStatus.textContent = 'Update system v1.4.0';
+        lblStatus.textContent = 'Update system v1.5.0';
         lblStatus.style.color = 'var(--color-success)';
       }
     }

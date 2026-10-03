@@ -51,14 +51,14 @@ class TaskManager {
       ]
     });
 
-    // 3. 🍌 AFTER COLLEGE & STUDY
+    // 3. 🥪 AFTER COLLEGE & STUDY
     categories.push({
       id: 'after_college',
       title: 'After College & Study',
-      icon: '🍌',
+      icon: '🥪',
       description: 'Recharge with a snack, hydrate, and complete daily study focus.',
       tasks: [
-        { id: 'task_snack', title: 'Evening snack', time: times.eveningSnack || '04:30–05:30 PM', hint: 'Banana / Peanuts / Boiled Eggs / Oats' },
+        { id: 'task_snack', title: 'Evening snack', time: times.eveningSnack || '04:30–05:30 PM', hint: 'Peanuts / Boiled Eggs / Oats' },
         { id: 'task_water_target', title: `Daily water target completed (${state.targets.waterTargetL} L)`, time: 'All Day', hint: `Target: ${state.targets.waterTargetL} Liters` },
         { id: 'task_study', title: `Study completed (${state.targets.studyTargetMin} mins)`, time: times.study || '05:30–07:00 PM', hint: 'Class revision, assignments, and tomorrow prep' }
       ]
@@ -67,11 +67,11 @@ class TaskManager {
     // 4. 🥗 NUTRITION & AFFORDABLE PROTEIN
     categories.push({
       id: 'nutrition',
-      title: 'Nutrition & Affordable Protein',
+      title: 'Nutrition',
       icon: '🥗',
-      description: 'Affordable student-friendly whole foods, budget protein & nourishing meals.',
+      description: 'Eat regular meals and choose affordable protein when available.',
       tasks: [
-        { id: 'task_protein_food', title: 'Affordable protein eaten', time: 'All Day', hint: 'Eggs / Dal / Soy chunks / Peanuts (or optional chicken)' },
+        { id: 'task_protein_food', title: 'Affordable protein eaten', time: 'All Day', hint: 'Eggs / Dal / Soy chunks / Peanuts / Milk (or optional chicken)' },
         { id: 'task_cook_dinner', title: 'Dinner prepared', time: times.cookDinner || '07:00 PM', hint: 'Self-cooked nourishing dinner' },
         { id: 'task_dinner', title: 'Balanced dinner eaten', time: times.dinner || '07:30–08:30 PM', hint: 'Rice / Roti, Dal, and seasonal vegetables' }
       ]

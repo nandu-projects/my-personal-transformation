@@ -71,7 +71,7 @@ class RoutineManager {
     });
 
     // Evening & Night Routine
-    timeline.push({ time: times.eveningSnack || '04:30–05:30 PM', label: 'Evening Snack + Rehydration 🍌', tag: 'meal' });
+    timeline.push({ time: times.eveningSnack || '04:30–05:30 PM', label: 'Evening Snack + Rehydration 🥪', tag: 'meal' });
     timeline.push({ time: times.study || '05:30–07:00 PM', label: `Study Target: Class Revision & Labs (${state.targets?.studyTargetMin || 90} mins) 📚`, tag: 'study' });
     timeline.push({ time: times.cookDinner || '07:00 PM', label: 'Evening Cooking & Dinner Prep 🍳', tag: 'cooking' });
     timeline.push({ time: times.dinner || '07:30–08:30 PM', label: 'Dinner & Protein Foods 🍗', tag: 'meal' });

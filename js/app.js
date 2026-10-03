@@ -236,38 +236,25 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('lblStudyTarget').textContent = state.targets?.studyTargetMin || 90;
     document.getElementById('inputStudyMinutes').value = record.studyCompletedMin || 0;
 
-    // --- 4. 🍗 NUTRITION & DINNER SECTION ---
-    document.getElementById('lblTimeDinner').textContent = times.dinner || '07:30–08:30 PM';
-    document.getElementById('inputTodayWeight').value = record.weightKg || '';
-    document.getElementById('inputProteinConsumed').value = record.proteinConsumedG || 0;
-    document.getElementById('lblProteinTarget').textContent = state.targets?.proteinTargetG || 70;
+    // --- 4. 🥗 NUTRITION SECTION ---
+    const meals = record.mealsEaten || record.cookingDone || {};
+    const cbMealBfast = document.getElementById('cbMealBfast');
+    const cbMealLunch = document.getElementById('cbMealLunch');
+    const cbMealDinner = document.getElementById('cbMealDinner');
+    if (cbMealBfast) {
+      cbMealBfast.checked = !!meals.breakfast;
+      document.getElementById('lblMealBfast')?.classList.toggle('checked', !!meals.breakfast);
+    }
+    if (cbMealLunch) {
+      cbMealLunch.checked = !!meals.lunch;
+      document.getElementById('lblMealLunch')?.classList.toggle('checked', !!meals.lunch);
+    }
+    if (cbMealDinner) {
+      cbMealDinner.checked = !!meals.dinner;
+      document.getElementById('lblMealDinner')?.classList.toggle('checked', !!meals.dinner);
+    }
 
-    // Cooking checkboxes
-    const cook = record.cookingDone || {};
-    document.getElementById('cbCookBfast').checked = !!cook.breakfast;
-    document.getElementById('cbCookLunch').checked = !!cook.lunch;
-    document.getElementById('cbCookDinner').checked = !!cook.dinner;
-    document.getElementById('lblCookBfast').classList.toggle('checked', !!cook.breakfast);
-    document.getElementById('lblCookLunch').classList.toggle('checked', !!cook.lunch);
-    document.getElementById('lblCookDinner').classList.toggle('checked', !!cook.dinner);
-
-    // Dinner Foods Grid
-    renderFoodGrid(
-      'dinnerFoodsGrid',
-      state.foodOptions?.dinner || [],
-      record.dinnerItems || [],
-      (item, isChecked) => {
-        const cur = record.dinnerItems || [];
-        const updated = isChecked ? [...cur, item] : cur.filter(x => x !== item);
-        stateManager.updateRecord(activeDate, { dinnerItems: updated });
-        if (updated.length > 0 && record.tasks?.task_dinner !== 'DONE') {
-          stateManager.setTaskStatus(activeDate, 'task_dinner', 'DONE');
-        }
-        renderAll();
-      }
-    );
-
-    // Protein Foods Checklist & Quantities
+    // Protein Foods Checklist (Simple checkboxes, no grams)
     renderProteinFoodsList(state, record, activeDate);
 
     // --- 5. 💇 HAIR CARE SECTION ---
@@ -419,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Protein Foods Checklist Helper with Affordable Staples & Optional Choices
+  // Protein Foods Checklist Helper (Simple 6 items, no grams/quantities)
   function renderProteinFoodsList(state, record, activeDate) {
     const container = document.getElementById('proteinFoodsListContainer');
     if (!container) return;
@@ -428,45 +415,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const eatenMap = record.proteinFoodsEaten || {};
 
     container.innerHTML = foods.map(f => {
-      const entry = eatenMap[f.id] || { eaten: false, qty: f.defaultQty };
-      const isEaten = !!entry.eaten;
-      const rowClass = isEaten ? 'eaten' : '';
+      const entry = eatenMap[f.id];
+      const isEaten = (typeof entry === 'object' && entry !== null) ? !!entry.eaten : !!entry;
       const checkedAttr = isEaten ? 'checked' : '';
-      const badgeText = f.isAffordable ? 'Affordable Staple' : 'Optional Choice';
-      const badgeStyle = f.isAffordable ? 'color: var(--color-brand);' : 'color: var(--text-muted);';
 
       return `
-        <div class="protein-food-row ${rowClass}" data-id="${f.id}" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); margin-bottom: 6px;">
-          <label class="protein-food-info" style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1;">
-            <input type="checkbox" ${checkedAttr} class="cb-protein-food" data-id="${f.id}" style="width: 18px; height: 18px; accent-color: var(--color-brand); cursor: pointer;">
-            <div>
-              <span style="font-weight: 600; font-size: 0.88rem;">${f.icon || '🥚'} ${f.name}</span>
-              <div style="font-size: 0.72rem; ${badgeStyle} font-weight: 600;">${badgeText}</div>
-            </div>
-          </label>
-          <div class="protein-qty-wrap" style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--text-muted);">
-            <span>Qty:</span>
-            <input type="text" class="protein-qty-input" data-id="${f.id}" value="${entry.qty !== undefined ? entry.qty : f.defaultQty}" style="width: 65px; padding: 4px 6px; text-align: center; background: var(--bg-surface); border: 1px solid var(--border-subtle); color: var(--text-primary); border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600;">
-            <span>${f.unit}</span>
-          </div>
-        </div>
+        <label class="substep-item ${isEaten ? 'checked' : ''}" style="margin-bottom: 6px; cursor: pointer;">
+          <span style="font-size: 0.9rem; font-weight: 600;">${f.icon || '🥚'} ${f.name}</span>
+          <input type="checkbox" ${checkedAttr} class="cb-protein-food" data-id="${f.id}">
+        </label>
       `;
     }).join('');
-
-    // Update Summary Display
-    updateProteinSummary(foods, eatenMap, state, record, activeDate);
 
     // Event listeners
     container.querySelectorAll('.cb-protein-food').forEach(cb => {
       cb.onchange = (e) => {
         const id = e.target.dataset.id;
         const curMap = record.proteinFoodsEaten || {};
-        const curEntry = curMap[id] || {};
-        curMap[id] = { ...curEntry, eaten: e.target.checked };
+        curMap[id] = { eaten: e.target.checked };
         stateManager.updateRecord(activeDate, { proteinFoodsEaten: curMap });
 
         // Auto-check protein food task if any eaten
-        const hasAnyEaten = Object.values(curMap).some(v => v.eaten);
+        const hasAnyEaten = Object.values(curMap).some(v => (typeof v === 'object' ? v.eaten : !!v));
         if (hasAnyEaten && record.tasks?.task_protein_food !== 'DONE') {
           stateManager.setTaskStatus(activeDate, 'task_protein_food', 'DONE');
         }
@@ -474,52 +444,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateProgressUI(activeDate);
       };
     });
-
-    container.querySelectorAll('.protein-qty-input').forEach(inp => {
-      inp.onchange = (e) => {
-        const id = e.target.dataset.id;
-        const curMap = record.proteinFoodsEaten || {};
-        const curEntry = curMap[id] || {};
-        curMap[id] = { ...curEntry, qty: e.target.value.trim() };
-        stateManager.updateRecord(activeDate, { proteinFoodsEaten: curMap });
-        updateProteinSummary(foods, curMap, state, record, activeDate);
-      };
-    });
-  }
-
-  function updateProteinSummary(foods, eatenMap, state, record, activeDate) {
-    const selectedNames = [];
-    let approxTotalG = 0;
-
-    foods.forEach(f => {
-      const entry = eatenMap[f.id];
-      if (entry && entry.eaten) {
-        const qtyNum = parseFloat(entry.qty) || f.defaultQty;
-        const proteinMultiplier = f.proteinG || 1;
-        const proteinFromFood = Math.round(qtyNum * proteinMultiplier);
-        selectedNames.push(`${f.name} (~${proteinFromFood}g)`);
-        approxTotalG += proteinFromFood;
-      }
-    });
-
-    const lblSelected = document.getElementById('lblProteinSelectedList');
-    const lblApprox = document.getElementById('lblProteinApproxTotal');
-    const lblTarget = document.getElementById('lblProteinTargetDisplay');
-
-    if (lblSelected) {
-      lblSelected.textContent = selectedNames.length > 0 ? selectedNames.join(', ') : 'None yet';
-    }
-    if (lblApprox) {
-      lblApprox.textContent = `~${approxTotalG}g`;
-    }
-    if (lblTarget) {
-      lblTarget.textContent = `${state.targets?.proteinTargetG || 70}g`;
-    }
-
-    if (approxTotalG > 0 && (!record.proteinConsumedG || record.proteinConsumedG === 0)) {
-      document.getElementById('inputProteinConsumed').value = approxTotalG;
-      stateManager.updateRecord(activeDate, { proteinConsumedG: approxTotalG });
-    }
   }
 
   // Hair Care Section Helper
@@ -734,7 +658,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Daily Targets
     document.getElementById('settingWaterTarget').value = state.targets?.waterTargetL || 3.0;
-    document.getElementById('settingProteinTarget').value = state.targets?.proteinTargetG || 70;
+    const settingProteinTargetEl = document.getElementById('settingProteinTarget');
+    if (settingProteinTargetEl) settingProteinTargetEl.value = state.targets?.proteinTargetG || 70;
     document.getElementById('settingStudyTarget').value = state.targets?.studyTargetMin || 90;
     document.getElementById('settingSleepTarget').value = state.targets?.sleepTargetHours || '7–9';
 
@@ -993,48 +918,26 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Water reset to 0L');
   });
 
-  // Protein Tracking Inputs & Buttons
-  inputTodayWeight.addEventListener('change', () => {
-    const val = parseFloat(inputTodayWeight.value) || '';
-    const activeDate = stateManager.getState().activeDate;
-    stateManager.updateRecord(activeDate, { weightKg: val });
-    showToast(`Weight recorded: ${val} kg`);
-  });
-
-  function addProtein(g) {
-    const activeDate = stateManager.getState().activeDate;
-    const currentRec = stateManager.getRecord(activeDate);
-    const newTotal = (currentRec.proteinConsumedG || 0) + g;
-    stateManager.updateRecord(activeDate, { proteinConsumedG: newTotal });
-
-    const target = stateManager.getState().targets?.proteinTargetG || 70;
-    if (newTotal >= target) {
-      stateManager.setTaskStatus(activeDate, 'task_protein_food', 'DONE');
-    }
-    renderAll();
-    showToast(`+${g}g protein logged (${newTotal}g total)`);
+  // Regular Meals Checkboxes
+  function setupMealCheckbox(id, mealKey) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', (e) => {
+      const activeDate = stateManager.getState().activeDate;
+      const rec = stateManager.getRecord(activeDate);
+      const meals = { ...(rec.mealsEaten || rec.cookingDone || {}), [mealKey]: e.target.checked };
+      stateManager.updateRecord(activeDate, { mealsEaten: meals, cookingDone: meals });
+      if (mealKey === 'dinner' && e.target.checked && rec.tasks?.task_dinner !== 'DONE') {
+        stateManager.setTaskStatus(activeDate, 'task_dinner', 'DONE');
+      }
+      renderAll();
+      showToast(`${mealKey.charAt(0).toUpperCase() + mealKey.slice(1)} ${e.target.checked ? 'completed ✅' : 'unmarked'}`);
+    });
   }
 
-  document.getElementById('btnAddProtein10').addEventListener('click', () => addProtein(10));
-  document.getElementById('btnAddProtein20').addEventListener('click', () => addProtein(20));
-  document.getElementById('btnAddProtein30').addEventListener('click', () => addProtein(30));
-  document.getElementById('btnResetProtein').addEventListener('click', () => {
-    const activeDate = stateManager.getState().activeDate;
-    stateManager.updateRecord(activeDate, { proteinConsumedG: 0 });
-    renderAll();
-    showToast('Protein reset to 0g');
-  });
-
-  inputProteinConsumed.addEventListener('change', () => {
-    const val = parseInt(inputProteinConsumed.value, 10) || 0;
-    const activeDate = stateManager.getState().activeDate;
-    stateManager.updateRecord(activeDate, { proteinConsumedG: val });
-    const target = stateManager.getState().targets?.proteinTargetG || 70;
-    if (val >= target) {
-      stateManager.setTaskStatus(activeDate, 'task_protein_food', 'DONE');
-    }
-    renderAll();
-  });
+  setupMealCheckbox('cbMealBfast', 'breakfast');
+  setupMealCheckbox('cbMealLunch', 'lunch');
+  setupMealCheckbox('cbMealDinner', 'dinner');
 
   // Study Inputs & Simple Timer
   inputStudyMinutes.addEventListener('change', () => {
@@ -1219,9 +1122,8 @@ document.addEventListener('DOMContentLoaded', () => {
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; font-size: 0.8rem; background: var(--bg-card); padding: 10px; border-radius: var(--radius-md);">
         <div>💧 Water: <strong>${detail.metrics.waterConsumedL || 0} L</strong></div>
         <div>💤 Sleep: <strong>${detail.metrics.sleepHours || 0} hrs</strong></div>
-        <div>🥗 Protein: <strong>${detail.metrics.proteinConsumedG || 0} g</strong></div>
         <div>📚 Study: <strong>${detail.metrics.studyCompletedMin || 0} min</strong></div>
-        ${detail.metrics.weightKg ? `<div>⚖️ Weight: <strong>${detail.metrics.weightKg} kg</strong></div>` : ''}
+        <div>🥗 Meals: <strong>${(detail.record.mealsEaten?.breakfast || detail.record.cookingDone?.breakfast ? 'Bfast ' : '') + (detail.record.mealsEaten?.lunch || detail.record.cookingDone?.lunch ? 'Lunch ' : '') + (detail.record.mealsEaten?.dinner || detail.record.cookingDone?.dinner ? 'Dinner' : '') || 'Logged'}</strong></div>
       </div>
 
       <div style="font-size: 0.88rem; font-weight: 700; margin-bottom: 8px; color: var(--color-success);">✅ Completed Tasks (${detail.completedTasks.length}):</div>
@@ -1410,12 +1312,15 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Water target updated');
   });
 
-  document.getElementById('settingProteinTarget').addEventListener('change', (e) => {
-    const val = parseInt(e.target.value, 10) || 70;
-    stateManager.updateTargets({ proteinTargetG: val });
-    renderAll();
-    showToast('Protein target updated');
-  });
+  const settingProteinTargetInput = document.getElementById('settingProteinTarget');
+  if (settingProteinTargetInput) {
+    settingProteinTargetInput.addEventListener('change', (e) => {
+      const val = parseInt(e.target.value, 10) || 70;
+      stateManager.updateTargets({ proteinTargetG: val });
+      renderAll();
+      showToast('Protein target updated');
+    });
+  }
 
   document.getElementById('settingStudyTarget').addEventListener('change', (e) => {
     const val = parseInt(e.target.value, 10) || 90;
