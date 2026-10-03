@@ -15,8 +15,8 @@ class UpdateManager {
     this.progressListenerAttached = false;
     this.appVersionInfo = {
       packageName: 'com.nanduprojects.transformation',
-      versionName: '1.2.0',
-      versionCode: 3
+      versionName: '1.2.1',
+      versionCode: 4
     };
   }
 
@@ -349,7 +349,7 @@ class UpdateManager {
         lblStatus.textContent = 'Offline';
         lblStatus.style.color = 'var(--text-muted)';
       } else {
-        lblStatus.textContent = `Up to date (v${this.appVersionInfo.versionName})`;
+        lblStatus.textContent = 'Update system v1.2.1';
         lblStatus.style.color = 'var(--color-success)';
       }
     }

@@ -236,12 +236,12 @@ it('should restore valid state from backup', () => {
 
 // 8. UPDATE MANAGER & OFFLINE PERSISTENCE TESTS
 console.log('\nTesting UpdateManager & Offline Resilience...');
-it('should instantiate with default package com.nanduprojects.transformation and versionCode 3', () => {
+it('should instantiate with default package com.nanduprojects.transformation and versionCode 4', () => {
   const sm = new StateManager();
   const um = new UpdateManager(sm);
   assert.strictEqual(um.appVersionInfo.packageName, 'com.nanduprojects.transformation');
-  assert.strictEqual(um.appVersionInfo.versionCode, 3);
-  assert.strictEqual(um.appVersionInfo.versionName, '1.2.0');
+  assert.strictEqual(um.appVersionInfo.versionCode, 4);
+  assert.strictEqual(um.appVersionInfo.versionName, '1.2.1');
 });
 
 it('should configure GITHUB_REPO constant correctly', () => {
