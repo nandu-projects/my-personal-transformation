@@ -39,6 +39,25 @@
 
     <!-- SCREEN 1: HOME (TODAY'S ROUTINE & TASKS) -->
     <main id="screenHome" class="screen active">
+      <!-- Google Play In-App Update Alert Banner -->
+      <section class="in-app-update-banner" id="inAppUpdateBanner">
+        <div class="update-banner-header">
+          <span>🚀</span>
+          <span>New version available</span>
+        </div>
+        <div class="update-banner-body" id="updateBannerText">
+          An update is available on Google Play. Update now without losing your streak or data.
+        </div>
+        <div class="update-banner-actions">
+          <button class="btn-update-now" id="btnUpdateNow">
+            ⚡ UPDATE NOW
+          </button>
+          <button class="btn-update-dismiss" id="btnDismissUpdate">
+            Later
+          </button>
+        </div>
+      </section>
+
       <!-- 2. Today's Progress Hero Card -->
       <section class="progress-card">
         <div class="progress-header">
@@ -678,6 +697,29 @@
           ⚠️ Reset All Data
         </button>
       </section>
+
+      <!-- App Version & Google Play In-App Updates -->
+      <section class="settings-group">
+        <h3>🚀 App Updates & Distribution</h3>
+        <div class="form-row">
+          <span class="form-label">Installed Version</span>
+          <strong id="lblInstalledVersion" style="color: var(--color-brand);">v1.1.0 (Build 2)</strong>
+        </div>
+        <div class="form-row">
+          <span class="form-label">Application ID</span>
+          <span style="font-size: 0.8rem; color: var(--text-muted); font-family: monospace;">com.nanduprojects.transformation</span>
+        </div>
+        <div class="form-row">
+          <span class="form-label">Update Engine</span>
+          <span style="font-size: 0.8rem; color: var(--color-brand); font-weight: 700;">Google Play In-App Updates</span>
+        </div>
+        <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 8px; line-height: 1.45;">
+          Updates are applied seamlessly in-app via Google Play without uninstalling or losing your streak and habits.
+        </div>
+        <button class="btn-chip" id="btnCheckUpdatesManual" style="width: 100%; margin-top: 10px; background: var(--bg-card-hover); font-weight: 700;">
+          🔄 Check for Updates Now
+        </button>
+      </section>
     </main>
 
     <!-- Bottom Navigation -->
@@ -834,6 +876,7 @@
   <script src="js/routine.js"></script>
   <script src="js/history.js"></script>
   <script src="js/backup.js"></script>
+  <script src="js/update.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

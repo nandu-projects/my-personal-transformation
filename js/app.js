@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const routineManager = new RoutineManager(stateManager, timetableManager);
   const historyManager = new HistoryManager(stateManager, taskManager);
   const backupManager = new BackupManager(stateManager);
+  const updateManager = new UpdateManager(stateManager);
+  updateManager.init();
 
   // Workout Runner
   let workoutRunner = new WorkoutRunner(() => {
@@ -709,6 +711,11 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `;
       }).join('');
+    }
+
+    const lblVersion = document.getElementById('lblInstalledVersion');
+    if (lblVersion && updateManager && updateManager.appVersionInfo) {
+      lblVersion.textContent = `v${updateManager.appVersionInfo.versionName} (Build ${updateManager.appVersionInfo.versionCode})`;
     }
   }
 
@@ -1450,6 +1457,28 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // In-App Updates Handlers
+  const btnUpdateNow = document.getElementById('btnUpdateNow');
+  if (btnUpdateNow) {
+    btnUpdateNow.addEventListener('click', () => {
+      updateManager.triggerImmediateUpdate();
+    });
+  }
+
+  const btnDismissUpdate = document.getElementById('btnDismissUpdate');
+  if (btnDismissUpdate) {
+    btnDismissUpdate.addEventListener('click', () => {
+      updateManager.hideUpdateBanner();
+    });
+  }
+
+  const btnCheckUpdatesManual = document.getElementById('btnCheckUpdatesManual');
+  if (btnCheckUpdatesManual) {
+    btnCheckUpdatesManual.addEventListener('click', () => {
+      updateManager.checkForUpdate(true);
+    });
+  }
 
   // Service Worker Registration for Offline Cache
   if ('serviceWorker' in navigator) {

@@ -18,6 +18,7 @@ const { TimetableManager } = require('../js/timetable.js');
 const { RoutineManager } = require('../js/routine.js');
 const { HistoryManager } = require('../js/history.js');
 const { BackupManager } = require('../js/backup.js');
+const { UpdateManager } = require('../js/update.js');
 
 let passedTests = 0;
 let totalTests = 0;
@@ -231,6 +232,24 @@ it('should restore valid state from backup', () => {
   assert.strictEqual(updatedState.profile.name, 'Transformation Champ');
   assert.strictEqual(updatedState.targets.proteinTargetG, 85);
   assert.strictEqual(updatedState.records['2026-10-01'].saved, true);
+});
+
+// 8. UPDATE MANAGER & OFFLINE PERSISTENCE TESTS
+console.log('\nTesting UpdateManager & Offline Resilience...');
+it('should instantiate with default package com.nanduprojects.transformation and versionCode 2', () => {
+  const sm = new StateManager();
+  const um = new UpdateManager(sm);
+  assert.strictEqual(um.appVersionInfo.packageName, 'com.nanduprojects.transformation');
+  assert.strictEqual(um.appVersionInfo.versionCode, 2);
+  assert.strictEqual(um.appVersionInfo.versionName, '1.1.0');
+});
+
+it('should safely handle offline mode without errors', async () => {
+  global.navigator = { onLine: false };
+  const sm = new StateManager();
+  const um = new UpdateManager(sm);
+  await um.checkForUpdate(false);
+  assert.strictEqual(um.isChecking, false);
 });
 
 console.log(`\n========================================`);
