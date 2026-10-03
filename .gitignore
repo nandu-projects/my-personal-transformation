@@ -1,0 +1,48 @@
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment and secrets
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.cert
+credentials.json
+secret.json
+*.keystore
+*.jks
+
+# Editor & IDE configs
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Capacitor & Android build outputs
+android/.gradle/
+android/app/build/
+android/build/
+android/capacitor-cordova-android-plugins/build/
+android/local.properties
+android/.idea/
+www/
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Test and coverage
+coverage/
+.nyc_output/

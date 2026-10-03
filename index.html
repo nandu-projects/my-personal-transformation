@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>My Personal Transformation</title>
+  <meta name="description" content="Simple, clean daily habit and transformation tracker for Android">
+  <meta name="theme-color" content="#0F172A">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icons/favicon.png">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Sticky Header -->
+    <header class="app-header">
+      <div class="header-top">
+        <div class="app-title-group">
+          <h1 id="headerAppTitle">My Personal Transformation</h1>
+          <div class="sub-date" id="headerDateLabel">Saturday, Oct 3, 2026</div>
+        </div>
+        <div class="header-badges">
+          <span class="badge-day" id="headerDayBadge">DAY 1</span>
+          <button class="btn-icon" id="btnToggleTheme" title="Toggle Theme" aria-label="Toggle Theme">🌙</button>
+        </div>
+      </div>
+
+      <!-- Challenge Selection Bar -->
+      <div class="challenge-bar" id="challengeBar">
+        <button class="challenge-pill" data-days="7">7 Days</button>
+        <button class="challenge-pill" data-days="14">14 Days</button>
+        <button class="challenge-pill active" data-days="30">30 Days</button>
+        <button class="challenge-pill" data-days="60">60 Days</button>
+        <button class="challenge-pill" data-days="90">90 Days</button>
+        <button class="challenge-pill" data-days="custom">Custom</button>
+        <button class="challenge-pill" data-days="unlimited">Ongoing</button>
+      </div>
+    </header>
+
+    <!-- SCREEN 1: HOME (TODAY'S ROUTINE & TASKS) -->
+    <main id="screenHome" class="screen active">
+      <!-- Today's Progress Hero Card -->
+      <section class="progress-card">
+        <div class="progress-header">
+          <div>
+            <div class="progress-title">Today's Progress</div>
+            <div class="progress-stat" id="homeProgressPercent">0%</div>
+          </div>
+          <div class="progress-sub" id="homeProgressRatio">0 / 0 Tasks</div>
+        </div>
+
+        <div class="progress-track">
+          <div class="progress-fill" id="homeProgressBar" style="width: 0%;"></div>
+        </div>
+
+        <div class="progress-breakdown">
+          <div class="breakdown-item">
+            <span>✅ Completed</span>
+            <strong id="homeStatCompleted">0</strong>
+          </div>
+          <div class="breakdown-item">
+            <span>❌ Incomplete</span>
+            <strong id="homeStatNotCompleted">0</strong>
+          </div>
+          <div class="breakdown-item">
+            <span>⏳ Remaining</span>
+            <strong id="homeStatRemaining">0</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- Category 1: SLEEP -->
+      <section class="section-card" id="cat-sleep">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <span class="section-icon">🌙</span>
+            <h2 class="section-title">Sleep</h2>
+          </div>
+        </div>
+        <div class="section-desc">Quality rest supports physical recovery and mental focus.</div>
+
+        <div class="metric-row">
+          <span class="metric-label">Actual Sleep Hours:</span>
+          <div class="metric-input-wrap">
+            <input type="number" id="inputSleepHours" class="metric-input" min="0" max="24" step="0.5" placeholder="8.0">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">hrs</span>
+          </div>
+        </div>
+        <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 12px;">
+          Target: <strong id="lblSleepTarget">7–9 hours</strong>
+        </div>
+
+        <div class="task-list" id="taskList-sleep"></div>
+      </section>
+
+      <!-- Category 2: WATER -->
+      <section class="section-card" id="cat-water">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <span class="section-icon">💧</span>
+            <h2 class="section-title">Water Hydration</h2>
+          </div>
+        </div>
+        
+        <div class="metric-row">
+          <span class="metric-label">Water Consumed:</span>
+          <div class="metric-input-wrap">
+            <strong id="lblWaterConsumed" style="font-size: 1.15rem; color: var(--color-info);">0.0</strong>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">/ <span id="lblWaterTarget">3.0</span> L</span>
+          </div>
+        </div>
+
+        <div class="btn-group-chips">
+          <button class="btn-chip" id="btnAddWater250">+250 ml</button>
+          <button class="btn-chip" id="btnAddWater500">+500 ml</button>
+          <button class="btn-chip" id="btnAddWater1000">+1 L</button>
+          <button class="btn-chip chip-reset" id="btnResetWater">Reset</button>
+        </div>
+
+        <div class="task-list" id="taskList-water"></div>
+      </section>
+
+      <!-- Category 3: HOME WORKOUT -->
+      <section class="section-card" id="cat-workout">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <span class="section-icon">💪</span>
+            <h2 class="section-title">Home Workout</h2>
+          </div>
+        </div>
+        <div class="section-desc" id="lblWorkoutSummary">Full Body Beginner Routine (10–15 mins, no gym equipment needed).</div>
+
+        <button class="btn-start-workout" id="btnStartWorkoutModal">
+          <span>▶</span> Start Guided Workout (10–15 min)
+        </button>
+
+        <div class="task-list" id="taskList-workout"></div>
+      </section>
+
+      <!-- Category 4: WEIGHT GAIN / NUTRITION -->
+      <section class="section-card" id="cat-nutrition">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <span class="section-icon">🥗</span>
+            <h2 class="section-title">Weight Gain / Nutrition</h2>
+          </div>
+        </div>
+        <div class="section-desc">Healthy whole foods, clean protein, and consistent calories. No dirty bulking.</div>
+
+        <div class="metric-row">
+          <span class="metric-label">Today's Weight:</span>
+          <div class="metric-input-wrap">
+            <input type="number" id="inputTodayWeight" class="metric-input" step="0.1" placeholder="60.0">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">kg</span>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <span class="metric-label">Protein Consumed:</span>
+          <div class="metric-input-wrap">
+            <input type="number" id="inputProteinConsumed" class="metric-input" placeholder="0">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">/ <span id="lblProteinTarget">70</span> g</span>
+          </div>
+        </div>
+
+        <div class="btn-group-chips">
+          <button class="btn-chip" id="btnAddProtein10">+10g</button>
+          <button class="btn-chip" id="btnAddProtein20">+20g</button>
+          <button class="btn-chip" id="btnAddProtein30">+30g</button>
+          <button class="btn-chip chip-reset" id="btnResetProtein">Reset</button>
+        </div>
+
+        <div class="task-list" id="taskList-nutrition"></div>
+      </section>
+
+      <!-- Category 5: SKIN CARE -->
+      <section class="section-card" id="cat-skincare">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <span class="section-icon">✨</span>
+            <h2 class="section-title">Skin Care</h2>
+          </div>
+        </div>
+        <div class="section-disclaimer">
+          Healthy skin hydration & daily sun protection. (This app does not promote or claim skin whitening).
+        </div>
+        <div class="task-list" id="taskList-skincare"></div>
+      </section>
+
+      <!-- Category 6: HAIR CARE -->
+      <section class="section-card" id="cat-haircare">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <span class="section-icon">💇</span>
+            <h2 class="section-title">Hair Care</h2>
+          </div>
+        </div>
+        <div class="section-desc" id="lblHairCareNotice">Configured wash days: Sunday & Thursday. Gentle care on other days.</div>
+        <div class="task-list" id="taskList-haircare"></div>
+      </section>
+
+      <!-- Category 7: HEIGHT & POSTURE SUPPORT -->
+      <section class="section-card" id="cat-posture">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <span class="section-icon">🧘</span>
+            <h2 class="section-title">Height & Posture Support</h2>
+          </div>
+        </div>
+        <div class="section-disclaimer">
+          These habits support posture, fitness and general health. Adult height cannot be guaranteed to increase.
+        </div>
+        <button class="btn-chip" id="btnViewPostureGuide" style="width: 100%; margin-bottom: 12px;">
+          📖 View Daily 3-Min Posture Stretches
+        </button>
+        <div class="task-list" id="taskList-posture"></div>
+      </section>
+
+      <!-- Category 8: COLLEGE (DSATM) -->
+      <section class="section-card" id="cat-college">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <span class="section-icon">🎓</span>
+            <h2 class="section-title">College (DSATM)</h2>
+          </div>
+        </div>
+        <div class="section-desc">Dayananda Sagar Academy of Technology & Management</div>
+
+        <!-- Today's College Classes Preview -->
+        <div style="margin-bottom: 14px;">
+          <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: var(--text-secondary);">
+            Today's Classes:
+          </div>
+          <div id="homeTodayClassesList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+
+        <div class="task-list" id="taskList-college"></div>
+      </section>
+
+      <!-- Category 9: TRAVEL -->
+      <section class="section-card" id="cat-travel">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <span class="section-icon">🚌</span>
+            <h2 class="section-title">Travel & Commute</h2>
+          </div>
+        </div>
+        <div class="section-desc">Kaggalipura ↔ Dayananda Sagar Academy of Technology & Management (DSATM)</div>
+
+        <div class="metric-row">
+          <span class="metric-label">Morning Commute:</span>
+          <div style="font-size: 0.82rem; text-align: right; color: var(--text-primary);">
+            Leave home by: <strong id="lblTravelLeave">08:20</strong><br>
+            Expected arrival: <strong id="lblTravelArrival">08:50</strong>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <span class="metric-label">Evening Return:</span>
+          <div style="font-size: 0.82rem; text-align: right; color: var(--text-primary);">
+            Leave DSATM by: <strong id="lblTravelReturn">16:30</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- Category 10: STUDY -->
+      <section class="section-card" id="cat-study">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <span class="section-icon">📚</span>
+            <h2 class="section-title">Study & Academics</h2>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <span class="metric-label">Study Completed:</span>
+          <div class="metric-input-wrap">
+            <input type="number" id="inputStudyMinutes" class="metric-input" placeholder="0">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">/ <span id="lblStudyTarget">90</span> min</span>
+          </div>
+        </div>
+
+        <!-- Simple Study Timer -->
+        <div class="btn-group-chips">
+          <button class="btn-chip" id="btnStudyTimer15">+15m</button>
+          <button class="btn-chip" id="btnStudyTimer30">+30m</button>
+          <button class="btn-chip" id="btnStudyTimerToggle">⏱️ Start Timer</button>
+          <button class="btn-chip chip-reset" id="btnResetStudy">Reset</button>
+        </div>
+        <div id="lblStudyTimerStatus" style="font-size: 0.8rem; color: var(--color-brand); text-align: center; margin-bottom: 12px; display: none;">
+          Timer Running: <span id="lblStudyTimerCountdown">00:00</span>
+        </div>
+
+        <div class="task-list" id="taskList-study"></div>
+      </section>
+
+      <!-- Category 11: TODAY'S COOKING -->
+      <section class="section-card" id="cat-cooking">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <span class="section-icon">🍳</span>
+            <h2 class="section-title">Today's Cooking</h2>
+          </div>
+        </div>
+        <div class="section-desc">Cooking your own nourishing meals while living independently.</div>
+        <div class="task-list" id="taskList-cooking"></div>
+      </section>
+
+      <!-- Category 12: DAILY TIMELINE PREVIEW -->
+      <section class="section-card" id="cat-timeline">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <span class="section-icon">📋</span>
+            <h2 class="section-title">Today's Routine Timeline</h2>
+          </div>
+        </div>
+        <div class="section-desc">Adjusts automatically around your DSATM college timetable.</div>
+        <div class="timeline-list" id="homeTimelineList"></div>
+      </section>
+
+      <!-- Section 14: TODAY'S RESULT -->
+      <section class="daily-result-card">
+        <div class="result-title">Today's Result</div>
+
+        <div class="result-metrics">
+          <div class="result-metric-box">
+            <div class="label">Completed</div>
+            <div class="val" id="resultCompletedVal" style="color: var(--color-success);">0</div>
+          </div>
+          <div class="result-metric-box">
+            <div class="label">Not Completed</div>
+            <div class="val" id="resultNotCompletedVal" style="color: var(--color-danger);">0</div>
+          </div>
+          <div class="result-metric-box">
+            <div class="label">Remaining</div>
+            <div class="val" id="resultRemainingVal" style="color: var(--color-warning);">0</div>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 16px;">
+          <span style="font-size: 0.85rem; color: var(--text-secondary);">Completion: </span>
+          <strong id="resultPercentVal" style="font-size: 1.25rem; color: var(--color-brand);">0%</strong>
+        </div>
+
+        <button class="btn-primary-action btn-save-day" id="btnSaveDay">
+          💾 SAVE DAY
+        </button>
+        <button class="btn-primary-action btn-next-day" id="btnNextDay">
+          ⏭️ NEXT DAY
+        </button>
+      </section>
+    </main>
+
+    <!-- SCREEN 2: HISTORY & STREAK -->
+    <main id="screenHistory" class="screen">
+      <div class="history-hero">
+        <div class="streak-card">
+          <div class="streak-val" id="historyCurrentStreak">0</div>
+          <div class="streak-lbl">Current Streak (Days)</div>
+        </div>
+        <div class="streak-card">
+          <div class="streak-val" id="historyBestStreak">0</div>
+          <div class="streak-lbl">Best Streak (Days)</div>
+        </div>
+      </div>
+
+      <div class="section-card" style="margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.9rem; font-weight: 700;">Challenge Progress</span>
+          <span class="badge-day" id="historyChallengeProgress">DAY 1 / 30</span>
+        </div>
+      </div>
+
+      <div style="font-size: 0.95rem; font-weight: 700; margin-bottom: 12px;">Previous Days</div>
+      <div id="historyListContainer"></div>
+    </main>
+
+    <!-- SCREEN 3: TIMETABLE (DSATM) -->
+    <main id="screenTimetable" class="screen">
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-title-wrap">
+            <span class="section-icon">🏛️</span>
+            <div>
+              <h2 class="section-title">DSATM College Schedule</h2>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">Dayananda Sagar Academy of Technology and Management</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-tab-bar" id="timetableDayTabs">
+          <button class="day-tab-btn active" data-day="Monday">Monday</button>
+          <button class="day-tab-btn" data-day="Tuesday">Tuesday</button>
+          <button class="day-tab-btn" data-day="Wednesday">Wednesday</button>
+          <button class="day-tab-btn" data-day="Thursday">Thursday</button>
+          <button class="day-tab-btn" data-day="Friday">Friday</button>
+          <button class="day-tab-btn" data-day="Saturday">Saturday</button>
+          <button class="day-tab-btn" data-day="Sunday">Sunday</button>
+        </div>
+
+        <button class="btn-chip" id="btnAddClassBtn" style="width: 100%; margin-bottom: 14px; background: var(--bg-card-hover); border-color: var(--border-focus);">
+          ➕ Add Class to Selected Day
+        </button>
+
+        <div id="timetableClassesContainer"></div>
+      </div>
+    </main>
+
+    <!-- SCREEN 4: SETTINGS -->
+    <main id="screenSettings" class="screen">
+      <!-- Profile & Challenge -->
+      <section class="settings-group">
+        <h3>👤 Profile & Challenge</h3>
+        <div class="form-row">
+          <label class="form-label" for="settingName">Name</label>
+          <input type="text" id="settingName" class="form-control" style="width: 140px;">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="settingChallengeDays">Challenge Days</label>
+          <select id="settingChallengeDays" class="form-control">
+            <option value="7">7 Days</option>
+            <option value="14">14 Days</option>
+            <option value="30">30 Days</option>
+            <option value="60">60 Days</option>
+            <option value="90">90 Days</option>
+            <option value="custom">Custom</option>
+            <option value="unlimited">Continue Until I Stop</option>
+          </select>
+        </div>
+        <div class="form-row" id="rowCustomDays" style="display: none;">
+          <label class="form-label" for="settingCustomDaysVal">Custom Days Count</label>
+          <input type="number" id="settingCustomDaysVal" class="form-control" style="width: 100px;" min="1" max="365">
+        </div>
+      </section>
+
+      <!-- Daily Targets -->
+      <section class="settings-group">
+        <h3>🎯 Daily Health Targets</h3>
+        <div class="form-row">
+          <label class="form-label" for="settingWaterTarget">Water Target (L)</label>
+          <input type="number" id="settingWaterTarget" class="form-control" step="0.25" style="width: 100px;">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="settingProteinTarget">Protein Target (g)</label>
+          <input type="number" id="settingProteinTarget" class="form-control" style="width: 100px;">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="settingStudyTarget">Study Target (mins)</label>
+          <input type="number" id="settingStudyTarget" class="form-control" style="width: 100px;">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="settingSleepTarget">Sleep Target (hours)</label>
+          <input type="text" id="settingSleepTarget" class="form-control" style="width: 100px;">
+        </div>
+      </section>
+
+      <!-- Travel Times -->
+      <section class="settings-group">
+        <h3>🚌 Commute (Kaggalipura ↔ DSATM)</h3>
+        <div class="form-row">
+          <label class="form-label" for="settingLeaveTime">Leave Home Time</label>
+          <input type="time" id="settingLeaveTime" class="form-control">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="settingTravelMin">Travel Duration (mins)</label>
+          <input type="number" id="settingTravelMin" class="form-control" style="width: 100px;">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="settingReturnTime">Return Home Time</label>
+          <input type="time" id="settingReturnTime" class="form-control">
+        </div>
+      </section>
+
+      <!-- Skincare & Haircare Customization -->
+      <section class="settings-group">
+        <h3>✨ Skincare Products</h3>
+        <div id="settingsSkincareList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;"></div>
+        <button class="btn-chip" id="btnAddSkincareProduct" style="width: 100%;">➕ Add Skincare Product</button>
+      </section>
+
+      <section class="settings-group">
+        <h3>💇 Hair Care Shampoo Days</h3>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">Select which days you want to shampoo:</div>
+        <div id="settingsHairDayChecks" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;"></div>
+      </section>
+
+      <!-- Notifications & Reminders -->
+      <section class="settings-group">
+        <h3>🔔 Reminders</h3>
+        <div id="settingsRemindersList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      </section>
+
+      <!-- Backup & Data -->
+      <section class="settings-group">
+        <h3>💾 Local Data & Backup</h3>
+        <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 14px;">
+          All data is stored 100% locally on your phone. No account required.
+        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <button class="btn-chip" id="btnExportBackup" style="background: var(--color-brand); color: #fff; font-weight: 700;">
+            ⬇️ Export Backup
+          </button>
+          <button class="btn-chip" id="btnTriggerImport">
+            ⬆️ Import Backup
+          </button>
+          <input type="file" id="importFileInput" accept=".json" style="display: none;">
+        </div>
+        <button class="btn-chip chip-reset" id="btnResetApp" style="width: 100%;">
+          ⚠️ Reset All Data
+        </button>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-target="screenHome">
+        <span class="nav-icon">🏠</span>
+        <span>HOME</span>
+      </button>
+      <button class="nav-item" data-target="screenHistory">
+        <span class="nav-icon">📜</span>
+        <span>HISTORY</span>
+      </button>
+      <button class="nav-item" data-target="screenTimetable">
+        <span class="nav-icon">📅</span>
+        <span>TIMETABLE</span>
+      </button>
+      <button class="nav-item" data-target="screenSettings">
+        <span class="nav-icon">⚙️</span>
+        <span>SETTINGS</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- MODAL 1: WORKOUT RUNNER -->
+  <div class="modal-overlay" id="modalWorkout">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title" id="workoutModalTitle">Today's Workout</h3>
+        <button class="btn-close-modal" id="btnCloseWorkoutModal">✕</button>
+      </div>
+
+      <div class="workout-timer-box">
+        <div class="workout-exercise-name" id="workoutExName">Exercise Name</div>
+        <div class="workout-reps" id="workoutExReps">10–12 reps</div>
+        <div class="workout-countdown" id="workoutCountdown">45</div>
+        <div class="progress-track" style="margin-bottom: 0;">
+          <div class="progress-fill" id="workoutExProgress" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <div class="workout-instructions" id="workoutExInstructions">
+        Instructions go here...
+      </div>
+
+      <div class="workout-controls">
+        <button class="btn-chip" id="btnWorkoutPrev">⏮️ Prev</button>
+        <button class="btn-chip" id="btnWorkoutPlayPause" style="background: var(--color-brand); color: #fff; font-weight: 700;">▶ Play</button>
+        <button class="btn-chip" id="btnWorkoutNext">Next ⏭️</button>
+      </div>
+
+      <button class="btn-primary-action btn-save-day" id="btnFinishWorkout" style="margin-top: 14px;">
+        ✅ Complete Workout
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 2: ADD / EDIT CLASS -->
+  <div class="modal-overlay" id="modalClass">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalClassTitle">Add Class</h3>
+        <button class="btn-close-modal" id="btnCloseClassModal">✕</button>
+      </div>
+
+      <input type="hidden" id="modalClassId">
+      <input type="hidden" id="modalClassDay">
+
+      <div class="form-row">
+        <label class="form-label" for="modalClassSubject">Subject</label>
+        <input type="text" id="modalClassSubject" class="form-control" placeholder="e.g. Operating Systems" style="width: 200px;">
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="modalClassStart">Start Time</label>
+        <input type="time" id="modalClassStart" class="form-control" value="09:30">
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="modalClassEnd">End Time</label>
+        <input type="time" id="modalClassEnd" class="form-control" value="10:30">
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="modalClassRoom">Room / Location</label>
+        <input type="text" id="modalClassRoom" class="form-control" placeholder="e.g. Room 201" style="width: 200px;">
+      </div>
+
+      <button class="btn-primary-action btn-save-day" id="btnSaveClassModal" style="margin-top: 14px;">
+        Save Class
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 3: POSTURE GUIDE -->
+  <div class="modal-overlay" id="modalPosture">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title">Daily 3-Min Posture Stretches</h3>
+        <button class="btn-close-modal" id="btnClosePostureModal">✕</button>
+      </div>
+
+      <div class="section-disclaimer">
+        "These habits support posture, fitness and general health. Adult height cannot be guaranteed to increase."
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem; line-height: 1.5;">
+        <div style="background: var(--bg-card); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <strong style="color: var(--color-brand); display: block; margin-bottom: 4px;">1. Wall Angels (45 sec)</strong>
+          Stand with back, head, and elbows flat against wall. Slide arms up and down keeping shoulder blades tight.
+        </div>
+
+        <div style="background: var(--bg-card); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <strong style="color: var(--color-brand); display: block; margin-bottom: 4px;">2. Chin Tucks (30 sec)</strong>
+          Look forward, gently draw chin straight backward (like making a double chin). Hold 3s, release. Corrects forward neck posture from study/screens.
+        </div>
+
+        <div style="background: var(--bg-card); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <strong style="color: var(--color-brand); display: block; margin-bottom: 4px;">3. Doorway Chest Stretch (45 sec)</strong>
+          Place forearms on door frame, step one foot forward and feel chest expand. Opens rounded shoulders.
+        </div>
+
+        <div style="background: var(--bg-card); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <strong style="color: var(--color-brand); display: block; margin-bottom: 4px;">4. Cat-Cow Spine Mobility (60 sec)</strong>
+          On hands and knees, alternate gentle arching and rounding of spine to decompress vertebrae.
+        </div>
+      </div>
+
+      <button class="btn-chip" id="btnDonePostureModal" style="width: 100%; margin-top: 16px; background: var(--color-brand); color: #fff; font-weight: 700;">
+        Got it!
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 4: HISTORY DAY DETAIL -->
+  <div class="modal-overlay" id="modalHistoryDetail">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title" id="historyDetailTitle">Day Review</h3>
+        <button class="btn-close-modal" id="btnCloseHistoryDetail">✕</button>
+      </div>
+
+      <div id="historyDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toastMessage">Action Saved</div>
+
+  <!-- Scripts -->
+  <script src="js/state.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/workout.js"></script>
+  <script src="js/timetable.js"></script>
+  <script src="js/routine.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/backup.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+{
+  "name": "my-personal-transformation",
+  "version": "1.0.0",
+  "description": "My Personal Transformation - Simple, Clean Daily Habit & Routine Tracker for Android",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "test": "node tests/run-tests.js",
+    "build": "node scripts/prepare-www.js",
+    "cap:sync": "node scripts/prepare-www.js && npx cap sync android",
+    "cap:copy": "node scripts/prepare-www.js && npx cap copy android",
+    "android:debug": "node scripts/prepare-www.js && npx cap copy android && cd android && gradlew.bat assembleDebug",
+    "android:release": "node scripts/prepare-www.js && npx cap copy android && cd android && gradlew.bat assembleRelease"
+  },
+  "keywords": [
+    "personal-transformation",
+    "habit-tracker",
+    "daily-routine",
+    "workout",
+    "dsatm",
+    "android",
+    "capacitor"
+  ],
+  "author": "nandu-projects",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/cli": "^7.6.9",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3"
+  }
+}
