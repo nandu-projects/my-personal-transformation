@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#0F172A">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="icons/favicon.png">
-  <link rel="stylesheet" href="css/app.css?v=1.3.1">
+  <link rel="stylesheet" href="css/app.css?v=1.4.0">
   <script>
     // Invalidate stale WebView cache and unregister legacy service workers
     if ('serviceWorker' in navigator) {
@@ -100,16 +100,16 @@
 
         <div class="progress-breakdown">
           <div class="breakdown-item">
-            <span>✅ Completed</span>
-            <strong id="homeStatCompleted">0</strong>
+            <span>Completed</span>
+            <strong id="homeStatCompleted" style="color: var(--color-success);">0</strong>
           </div>
           <div class="breakdown-item">
-            <span>❌ Incomplete</span>
-            <strong id="homeStatNotCompleted">0</strong>
-          </div>
-          <div class="breakdown-item">
-            <span>⏳ Remaining</span>
+            <span>Remaining</span>
             <strong id="homeStatRemaining">0</strong>
+          </div>
+          <div class="breakdown-item">
+            <span>Incomplete</span>
+            <strong id="homeStatNotCompleted" style="color: var(--color-danger);">0</strong>
           </div>
         </div>
       </section>
@@ -304,8 +304,8 @@
           <div class="section-title-wrap">
             <span class="section-icon">🥗</span>
             <div>
-              <h2 class="section-title">Nutrition & Affordable Protein</h2>
-              <div class="section-desc" style="margin-bottom: 0;">Budget-friendly whole foods, student protein & balanced dinner</div>
+              <h2 class="section-title">Nutrition</h2>
+              <div class="section-desc" style="margin-bottom: 0;">Student-friendly whole foods, protein tracking & balanced meals</div>
             </div>
           </div>
           <span class="section-chevron">▼</span>
@@ -322,7 +322,7 @@
           </div>
 
           <div class="metric-row">
-            <span class="metric-label">Protein Consumed:</span>
+            <span class="metric-label">Daily Protein:</span>
             <div class="metric-input-wrap">
               <input type="number" id="inputProteinConsumed" class="metric-input" placeholder="0">
               <span style="font-size: 0.85rem; color: var(--text-muted);">/ <span id="lblProteinTarget">70</span> g</span>
@@ -339,11 +339,11 @@
           <!-- Affordable Protein Section -->
           <div class="substep-card">
             <div class="substep-header">
-              <strong style="font-size: 0.85rem; color: var(--text-primary);">🥗 Affordable Protein Sources:</strong>
-              <span style="font-size: 0.72rem; color: var(--color-brand); font-weight: 700;">Student Friendly</span>
+              <strong style="font-size: 0.88rem; color: var(--text-primary);">Protein Sources:</strong>
+              <span style="font-size: 0.72rem; color: var(--color-brand); font-weight: 700;">Affordable</span>
             </div>
             <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">
-              Choose what you actually ate today. Eggs, Dal, Soy chunks & Peanuts are budget staples; dairy & meat are optional.
+              Eggs, Dal, Soy chunks, Peanuts/Groundnuts, or optional Chicken/Meat.
             </div>
             <div class="protein-food-list" id="proteinFoodsListContainer"></div>
             
@@ -735,11 +735,11 @@
         <h3>🚀 App Updates</h3>
         <div class="form-row">
           <span class="form-label">Current version</span>
-          <strong id="lblInstalledVersion" style="color: var(--color-brand);">v1.3.1 (Build 6)</strong>
+          <strong id="lblInstalledVersion" style="color: var(--color-brand);">v1.4.0 (Build 7)</strong>
         </div>
         <div class="form-row">
           <span class="form-label">Update status</span>
-          <span id="lblUpdateStatus" style="font-size: 0.82rem; color: var(--color-success); font-weight: 600;">Update system v1.3.1</span>
+          <span id="lblUpdateStatus" style="font-size: 0.82rem; color: var(--color-success); font-weight: 600;">Update system v1.4.0</span>
         </div>
         <div class="form-row">
           <span class="form-label">Update source</span>
@@ -884,7 +884,7 @@
       </div>
 
       <button class="btn-chip" id="btnDonePostureModal" style="width: 100%; margin-top: 16px; background: var(--color-brand); color: #fff; font-weight: 700;">
-        Mark Posture Routine as RIGHT ✅
+        Log Posture Routine ✅
       </button>
     </div>
   </div>
@@ -905,14 +905,14 @@
   <div class="toast" id="toastMessage">Action Saved</div>
 
   <!-- Scripts with cache busters to prevent stale WebView script loading -->
-  <script src="js/state.js?v=1.3.1"></script>
-  <script src="js/tasks.js?v=1.3.1"></script>
-  <script src="js/workout.js?v=1.3.1"></script>
-  <script src="js/timetable.js?v=1.3.1"></script>
-  <script src="js/routine.js?v=1.3.1"></script>
-  <script src="js/history.js?v=1.3.1"></script>
-  <script src="js/backup.js?v=1.3.1"></script>
-  <script src="js/update.js?v=1.3.1"></script>
-  <script src="js/app.js?v=1.3.1"></script>
+  <script src="js/state.js?v=1.4.0"></script>
+  <script src="js/tasks.js?v=1.4.0"></script>
+  <script src="js/workout.js?v=1.4.0"></script>
+  <script src="js/timetable.js?v=1.4.0"></script>
+  <script src="js/routine.js?v=1.4.0"></script>
+  <script src="js/history.js?v=1.4.0"></script>
+  <script src="js/backup.js?v=1.4.0"></script>
+  <script src="js/update.js?v=1.4.0"></script>
+  <script src="js/app.js?v=1.4.0"></script>
 </body>
 </html>

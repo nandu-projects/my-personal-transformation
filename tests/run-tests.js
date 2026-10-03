@@ -236,12 +236,12 @@ it('should restore valid state from backup', () => {
 
 // 8. UPDATE MANAGER & OFFLINE PERSISTENCE TESTS
 console.log('\nTesting UpdateManager & Offline Resilience...');
-it('should instantiate with default package com.nanduprojects.transformation and versionCode 6', () => {
+it('should instantiate with default package com.nanduprojects.transformation and versionCode 7', () => {
   const sm = new StateManager();
   const um = new UpdateManager(sm);
   assert.strictEqual(um.appVersionInfo.packageName, 'com.nanduprojects.transformation');
-  assert.strictEqual(um.appVersionInfo.versionCode, 6);
-  assert.strictEqual(um.appVersionInfo.versionName, '1.3.1');
+  assert.strictEqual(um.appVersionInfo.versionCode, 7);
+  assert.strictEqual(um.appVersionInfo.versionName, '1.4.0');
 });
 
 it('should configure GITHUB_REPO constant correctly', () => {
@@ -312,9 +312,9 @@ it('should independently toggle RIGHT and WRONG without interfering with subsequ
   assert.strictEqual(stats.notCompleted, 1); // task2
 });
 
-// 10. RENDERED TASK BUTTON LABELS TESTS (STRICT RIGHT / WRONG REQUIREMENT)
-console.log('\nTesting Rendered Task Action Buttons...');
-it('should render every task action button with RIGHT and WRONG labels and NEVER render DONE or NOT DONE as button labels', () => {
+// 10. EMOJI-ONLY TASK ACTION BUTTONS (NO WORDS BESIDE EMOJIS)
+console.log('\nTesting Emoji-Only Task Action Buttons & UI Redesign...');
+it('should render every task action button with ONLY emojis [ ✅ ] and [ ❌ ] and NO text labels', () => {
   const sm = new StateManager();
   const tm = new TaskManager(sm);
   const categories = tm.getTasksForDate('2026-10-08');
@@ -329,27 +329,32 @@ it('should render every task action button with RIGHT and WRONG labels and NEVER
       ['PENDING', 'DONE', 'NOT_DONE'].forEach(status => {
         const html = tm.renderTaskItemHTML(t, status);
 
-        // 1. Must contain RIGHT and WRONG button text
-        assert.ok(html.includes('RIGHT'), `Task ${t.id} must contain 'RIGHT' label`);
-        assert.ok(html.includes('WRONG'), `Task ${t.id} must contain 'WRONG' label`);
-        assert.ok(html.includes('data-action="RIGHT"'), `Task ${t.id} must have data-action="RIGHT"`);
-        assert.ok(html.includes('data-action="WRONG"'), `Task ${t.id} must have data-action="WRONG"`);
-
-        // 2. Extract task-actions container to inspect button contents strictly
+        // 1. Extract task-actions container to inspect button contents strictly
         const actionsMatch = html.match(/<div class="task-actions">([\s\S]*?)<\/div>/);
         assert.ok(actionsMatch, `Task ${t.id} must contain <div class="task-actions"> container`);
 
         const actionsHTML = actionsMatch[1];
-        
-        // 3. Confirm "DONE" and "NOT DONE" are NEVER rendered as task action button labels
-        assert.ok(!actionsHTML.includes('>DONE<') && !actionsHTML.includes('> DONE<') && !actionsHTML.includes('DONE\n') && !actionsHTML.includes('✅ DONE'),
-          `Task ${t.id} action buttons MUST NOT contain visible 'DONE' label: ${actionsHTML}`);
-        assert.ok(!actionsHTML.includes('>NOT DONE<') && !actionsHTML.includes('> NOT DONE<') && !actionsHTML.includes('NOT DONE\n') && !actionsHTML.includes('❌ NOT DONE'),
-          `Task ${t.id} action buttons MUST NOT contain visible 'NOT DONE' label: ${actionsHTML}`);
-        
-        // Strictly verify exact button text content
-        assert.ok(actionsHTML.includes('✅ RIGHT'), `Task ${t.id} must contain visible '✅ RIGHT' button text`);
-        assert.ok(actionsHTML.includes('❌ WRONG'), `Task ${t.id} must contain visible '❌ WRONG' button text`);
+
+        // 2. Must contain data-action attributes for functionality
+        assert.ok(actionsHTML.includes('data-action="RIGHT"'), `Task ${t.id} must have data-action="RIGHT"`);
+        assert.ok(actionsHTML.includes('data-action="WRONG"'), `Task ${t.id} must have data-action="WRONG"`);
+
+        // 3. Confirm visible button content contains ONLY emojis, NO words!
+        const buttonMatches = [...actionsHTML.matchAll(/<button[^>]*>([\s\S]*?)<\/button>/g)];
+        assert.strictEqual(buttonMatches.length, 2, `Task ${t.id} must have exactly 2 action buttons`);
+
+        const btn1Text = buttonMatches[0][1].trim();
+        const btn2Text = buttonMatches[1][1].trim();
+
+        assert.strictEqual(btn1Text, '✅', `Button 1 must be strictly emoji ✅ with no text, got: "${btn1Text}"`);
+        assert.strictEqual(btn2Text, '❌', `Button 2 must be strictly emoji ❌ with no text, got: "${btn2Text}"`);
+
+        // 4. Double check NO forbidden words exist in action buttons
+        const forbiddenWords = ['RIGHT', 'WRONG', 'DONE', 'NOT DONE'];
+        forbiddenWords.forEach(word => {
+          assert.ok(!btn1Text.includes(word), `Button 1 must not contain word ${word}`);
+          assert.ok(!btn2Text.includes(word), `Button 2 must not contain word ${word}`);
+        });
       });
     });
   });
@@ -357,20 +362,78 @@ it('should render every task action button with RIGHT and WRONG labels and NEVER
   assert.ok(totalTasksChecked >= 15, `Expected at least 15 tasks rendered and verified, got ${totalTasksChecked}`);
 });
 
-it('should verify HTML and JS files contain zero task action buttons with DONE or NOT DONE', () => {
-  const fs = require('fs');
-  const path = require('path');
-  
-  const indexHtml = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
-  const appJs = fs.readFileSync(path.join(__dirname, '../js/app.js'), 'utf8');
-  const tasksJs = fs.readFileSync(path.join(__dirname, '../js/tasks.js'), 'utf8');
+it('should verify Paneer, Curd, Fish, and Fruit are completely absent from state, options, and task hints', () => {
+  const sm = new StateManager();
+  const tm = new TaskManager(sm);
+  const state = sm.getState();
 
-  // Verify task-actions templates in JS
-  assert.ok(!tasksJs.includes('✅ DONE'), 'tasks.js must not contain ✅ DONE button label');
-  assert.ok(!tasksJs.includes('❌ NOT DONE'), 'tasks.js must not contain ❌ NOT DONE button label');
-  assert.ok(!appJs.includes('✅ DONE'), 'app.js must not contain ✅ DONE button label');
-  assert.ok(!appJs.includes('❌ NOT DONE'), 'app.js must not contain ❌ NOT DONE button label');
-  assert.ok(!indexHtml.includes('Done ✅'), 'index.html must not contain Done ✅ button');
+  const forbiddenFoods = ['paneer', 'curd', 'fish', 'fruit'];
+
+  // 1. Check DEFAULT_FOOD_OPTIONS / state.foodOptions
+  Object.keys(state.foodOptions).forEach(meal => {
+    state.foodOptions[meal].forEach(item => {
+      const lower = item.toLowerCase();
+      forbiddenFoods.forEach(f => {
+        assert.ok(!lower.includes(f), `Food option "${item}" in ${meal} contains forbidden food "${f}"`);
+      });
+    });
+  });
+
+  // 2. Check state.proteinFoodsList
+  state.proteinFoodsList.forEach(p => {
+    const combined = ((p.name || '') + ' ' + (p.id || '')).toLowerCase();
+    forbiddenFoods.forEach(f => {
+      assert.ok(!combined.includes(f), `Protein food "${p.name}" contains forbidden food "${f}"`);
+    });
+  });
+
+  // 3. Check all task hints across the week
+  DAY_NAMES.forEach(day => {
+    const categories = tm.getTasksForDate('2026-10-05');
+    categories.forEach(cat => {
+      cat.tasks.forEach(t => {
+        const hintLower = (t.hint || '').toLowerCase();
+        forbiddenFoods.forEach(f => {
+          assert.ok(!hintLower.includes(f), `Task ${t.id} hint "${t.hint}" contains forbidden food "${f}"`);
+        });
+      });
+    });
+  });
+});
+
+it('should test consecutive independent toggling of every task button', () => {
+  const sm = new StateManager();
+  const tm = new TaskManager(sm);
+  const dateStr = '2026-10-09';
+  const categories = tm.getTasksForDate(dateStr);
+  const allTasks = [];
+  categories.forEach(c => c.tasks.forEach(t => allTasks.push(t.id)));
+
+  // Test every task's ✅ button
+  allTasks.forEach(id => {
+    sm.setTaskStatus(dateStr, id, 'DONE');
+    assert.strictEqual(sm.getRecord(dateStr).tasks[id], 'DONE');
+  });
+
+  // Test every task's ❌ button
+  allTasks.forEach(id => {
+    sm.setTaskStatus(dateStr, id, 'NOT_DONE');
+    assert.strictEqual(sm.getRecord(dateStr).tasks[id], 'NOT_DONE');
+  });
+
+  // Test resetting
+  allTasks.forEach(id => {
+    sm.setTaskStatus(dateStr, id, 'PENDING');
+    assert.strictEqual(sm.getRecord(dateStr).tasks[id], 'PENDING');
+  });
+});
+
+it('should test theme switching between dark and light modes cleanly', () => {
+  const sm = new StateManager();
+  sm.updateProfile({ theme: 'light' });
+  assert.strictEqual(sm.getState().profile.theme, 'light');
+  sm.updateProfile({ theme: 'dark' });
+  assert.strictEqual(sm.getState().profile.theme, 'dark');
 });
 
 console.log(`\n========================================`);

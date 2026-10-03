@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeDate = stateManager.getState().activeDate;
     stateManager.setTaskStatus(activeDate, 'task_workout', 'DONE');
     closeModal('modalWorkout');
-    showToast('🎉 Workout Completed! Marked as RIGHT ✅');
+    showToast('🎉 Workout Completed! ✅');
     renderAll();
   });
 
@@ -411,11 +411,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Toast
     if (newStatus === 'DONE') {
-      showToast('Marked RIGHT ✅');
+      showToast('Completed ✅');
     } else if (newStatus === 'NOT_DONE') {
-      showToast('Marked WRONG ❌');
+      showToast('Not Completed ❌');
     } else {
-      showToast('Reset to pending ⏳');
+      showToast('Reset ⏳');
     }
   }
 
@@ -872,7 +872,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(`Challenge set to ${type === 'unlimited' ? 'Ongoing' : days + ' Days'}`);
   });
 
-  // Task Buttons Delegation (✅ RIGHT / ❌ WRONG)
+  // Task Buttons Delegation (✅ / ❌)
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('.btn-task');
     if (!btn) return;
@@ -1174,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stateManager.setTaskStatus(activeDate, 'task_workout', 'DONE');
     closeModal('modalPosture');
     renderAll();
-    showToast('Posture routine logged as RIGHT ✅');
+    showToast('Posture routine logged ✅');
   });
 
   // SAVE DAY & NEXT DAY
