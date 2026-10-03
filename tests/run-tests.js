@@ -88,8 +88,8 @@ it('should generate simplified 15-20 core daily actions with AM/PM timings in re
     });
   });
 
-  // Verify 15-20 daily actions maximum
-  assert.ok(totalTasks >= 15 && totalTasks <= 20, `Expected 15–20 tasks, got ${totalTasks}`);
+  // Verify 15-18 daily actions
+  assert.ok(totalTasks >= 15 && totalTasks <= 18, `Expected 15–18 tasks, got ${totalTasks}`);
 });
 
 it('should auto-mark water target completed when water consumed reaches target', () => {
@@ -236,12 +236,12 @@ it('should restore valid state from backup', () => {
 
 // 8. UPDATE MANAGER & OFFLINE PERSISTENCE TESTS
 console.log('\nTesting UpdateManager & Offline Resilience...');
-it('should instantiate with default package com.nanduprojects.transformation and versionCode 5', () => {
+it('should instantiate with default package com.nanduprojects.transformation and versionCode 6', () => {
   const sm = new StateManager();
   const um = new UpdateManager(sm);
   assert.strictEqual(um.appVersionInfo.packageName, 'com.nanduprojects.transformation');
-  assert.strictEqual(um.appVersionInfo.versionCode, 5);
-  assert.strictEqual(um.appVersionInfo.versionName, '1.3.0');
+  assert.strictEqual(um.appVersionInfo.versionCode, 6);
+  assert.strictEqual(um.appVersionInfo.versionName, '1.3.1');
 });
 
 it('should configure GITHUB_REPO constant correctly', () => {
@@ -310,6 +310,67 @@ it('should independently toggle RIGHT and WRONG without interfering with subsequ
   const stats = tm.calculateStats(dateStr);
   assert.strictEqual(stats.completed, 1); // task3
   assert.strictEqual(stats.notCompleted, 1); // task2
+});
+
+// 10. RENDERED TASK BUTTON LABELS TESTS (STRICT RIGHT / WRONG REQUIREMENT)
+console.log('\nTesting Rendered Task Action Buttons...');
+it('should render every task action button with RIGHT and WRONG labels and NEVER render DONE or NOT DONE as button labels', () => {
+  const sm = new StateManager();
+  const tm = new TaskManager(sm);
+  const categories = tm.getTasksForDate('2026-10-08');
+
+  let totalTasksChecked = 0;
+
+  categories.forEach(cat => {
+    cat.tasks.forEach(t => {
+      totalTasksChecked++;
+      
+      // Test all statuses: PENDING, DONE, NOT_DONE
+      ['PENDING', 'DONE', 'NOT_DONE'].forEach(status => {
+        const html = tm.renderTaskItemHTML(t, status);
+
+        // 1. Must contain RIGHT and WRONG button text
+        assert.ok(html.includes('RIGHT'), `Task ${t.id} must contain 'RIGHT' label`);
+        assert.ok(html.includes('WRONG'), `Task ${t.id} must contain 'WRONG' label`);
+        assert.ok(html.includes('data-action="RIGHT"'), `Task ${t.id} must have data-action="RIGHT"`);
+        assert.ok(html.includes('data-action="WRONG"'), `Task ${t.id} must have data-action="WRONG"`);
+
+        // 2. Extract task-actions container to inspect button contents strictly
+        const actionsMatch = html.match(/<div class="task-actions">([\s\S]*?)<\/div>/);
+        assert.ok(actionsMatch, `Task ${t.id} must contain <div class="task-actions"> container`);
+
+        const actionsHTML = actionsMatch[1];
+        
+        // 3. Confirm "DONE" and "NOT DONE" are NEVER rendered as task action button labels
+        assert.ok(!actionsHTML.includes('>DONE<') && !actionsHTML.includes('> DONE<') && !actionsHTML.includes('DONE\n') && !actionsHTML.includes('✅ DONE'),
+          `Task ${t.id} action buttons MUST NOT contain visible 'DONE' label: ${actionsHTML}`);
+        assert.ok(!actionsHTML.includes('>NOT DONE<') && !actionsHTML.includes('> NOT DONE<') && !actionsHTML.includes('NOT DONE\n') && !actionsHTML.includes('❌ NOT DONE'),
+          `Task ${t.id} action buttons MUST NOT contain visible 'NOT DONE' label: ${actionsHTML}`);
+        
+        // Strictly verify exact button text content
+        assert.ok(actionsHTML.includes('✅ RIGHT'), `Task ${t.id} must contain visible '✅ RIGHT' button text`);
+        assert.ok(actionsHTML.includes('❌ WRONG'), `Task ${t.id} must contain visible '❌ WRONG' button text`);
+      });
+    });
+  });
+
+  assert.ok(totalTasksChecked >= 15, `Expected at least 15 tasks rendered and verified, got ${totalTasksChecked}`);
+});
+
+it('should verify HTML and JS files contain zero task action buttons with DONE or NOT DONE', () => {
+  const fs = require('fs');
+  const path = require('path');
+  
+  const indexHtml = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
+  const appJs = fs.readFileSync(path.join(__dirname, '../js/app.js'), 'utf8');
+  const tasksJs = fs.readFileSync(path.join(__dirname, '../js/tasks.js'), 'utf8');
+
+  // Verify task-actions templates in JS
+  assert.ok(!tasksJs.includes('✅ DONE'), 'tasks.js must not contain ✅ DONE button label');
+  assert.ok(!tasksJs.includes('❌ NOT DONE'), 'tasks.js must not contain ❌ NOT DONE button label');
+  assert.ok(!appJs.includes('✅ DONE'), 'app.js must not contain ✅ DONE button label');
+  assert.ok(!appJs.includes('❌ NOT DONE'), 'app.js must not contain ❌ NOT DONE button label');
+  assert.ok(!indexHtml.includes('Done ✅'), 'index.html must not contain Done ✅ button');
 });
 
 console.log(`\n========================================`);

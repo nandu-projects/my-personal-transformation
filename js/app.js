@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeDate = stateManager.getState().activeDate;
     stateManager.setTaskStatus(activeDate, 'task_workout', 'DONE');
     closeModal('modalWorkout');
-    showToast('🎉 Workout Completed! Marked as DONE.');
+    showToast('🎉 Workout Completed! Marked as RIGHT ✅');
     renderAll();
   });
 
@@ -353,33 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       listElem.innerHTML = cat.tasks.map(t => {
         const status = userTasks[t.id] || 'PENDING';
-        let symbol = '⏳';
-        if (status === 'DONE') symbol = '✅';
-        else if (status === 'NOT_DONE') symbol = '❌';
-
-        const isRightActive = status === 'DONE' ? 'active' : '';
-        const isWrongActive = status === 'NOT_DONE' ? 'active' : '';
-
-        return `
-          <div class="task-item" data-task-id="${t.id}" id="taskItem-${t.id}">
-            <div class="task-info">
-              <span class="task-status-symbol" id="taskSymbol-${t.id}">${symbol}</span>
-              <div class="task-text">
-                ${t.time ? `<span class="task-time-badge">${t.time}</span>` : ''}
-                <div class="task-title">${t.title}</div>
-                ${t.hint ? `<div class="task-hint">${t.hint}</div>` : ''}
-              </div>
-            </div>
-            <div class="task-actions">
-              <button type="button" class="btn-task btn-task-right ${isRightActive}" data-action="RIGHT" data-task-id="${t.id}">
-                ✅ RIGHT
-              </button>
-              <button type="button" class="btn-task btn-task-wrong ${isWrongActive}" data-action="WRONG" data-task-id="${t.id}">
-                ❌ WRONG
-              </button>
-            </div>
-          </div>
-        `;
+        return taskManager.renderTaskItemHTML(t, status);
       }).join('');
     });
   }
@@ -1197,9 +1171,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnDonePostureModal').addEventListener('click', () => {
     const activeDate = stateManager.getState().activeDate;
     stateManager.setTaskStatus(activeDate, 'task_posture', 'DONE');
+    stateManager.setTaskStatus(activeDate, 'task_workout', 'DONE');
     closeModal('modalPosture');
     renderAll();
-    showToast('Posture routine logged as DONE ✅');
+    showToast('Posture routine logged as RIGHT ✅');
   });
 
   // SAVE DAY & NEXT DAY
@@ -1588,14 +1563,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Service Worker Registration for Offline Cache
+  // Ensure Android WebView always serves latest packaged assets and purges any stale service worker caches
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').then(
-        reg => console.log('ServiceWorker registered with scope:', reg.scope),
-        err => console.log('ServiceWorker registration failed:', err)
-      );
-    });
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      for (const reg of regs) {
+        reg.unregister();
+      }
+    }).catch(() => {});
+  }
+  if ('caches' in window) {
+    caches.keys().then(keys => {
+      keys.forEach(k => caches.delete(k));
+    }).catch(() => {});
   }
 
   // 6. Initial Render

@@ -30,8 +30,7 @@ class TaskManager {
       tasks: [
         { id: 'task_wake', title: 'Wake up on planned time', time: times.wakeUp || '06:30 AM', hint: 'Start the day consistently' },
         { id: 'task_morning_water', title: 'Morning water (500 ml)', time: times.morningWater || '06:40 AM', hint: 'Rehydrate first thing' },
-        { id: 'task_workout', title: 'Workout completed', time: times.workout || '06:45–07:15 AM', hint: '10–15 min beginner home session' },
-        { id: 'task_posture', title: '3-minute posture routine', time: times.posture || '07:10 AM', hint: 'Decompress spine & neck' },
+        { id: 'task_workout', title: 'Home workout & posture routine', time: times.workout || '06:45–07:15 AM', hint: '10–15 min beginner home session + posture decompression' },
         { id: 'task_shower', title: 'Shower', time: times.shower || '07:15–07:30 AM', hint: 'Shower & hygiene' },
         { id: 'task_morning_skin', title: 'Morning skin care (Wash + Moisturizer + Sunscreen)', time: times.morningSkin || '07:30 AM', hint: 'Gentle wash → moisturizer → sunscreen SPF 30+' },
         { id: 'task_breakfast', title: 'Breakfast eaten', time: times.breakfast || '07:45 AM', hint: 'Nutritious breakfast with protein' },
@@ -161,6 +160,37 @@ class TaskManager {
       remaining,
       percentage
     };
+  }
+
+  // Generate task item HTML strictly using [ ✅ RIGHT ] and [ ❌ WRONG ] buttons
+  renderTaskItemHTML(t, status = 'PENDING') {
+    let symbol = '⏳';
+    if (status === 'DONE') symbol = '✅';
+    else if (status === 'NOT_DONE') symbol = '❌';
+
+    const isRightActive = status === 'DONE' ? 'active' : '';
+    const isWrongActive = status === 'NOT_DONE' ? 'active' : '';
+
+    return `
+      <div class="task-item" data-task-id="${t.id}" id="taskItem-${t.id}">
+        <div class="task-info">
+          <span class="task-status-symbol" id="taskSymbol-${t.id}">${symbol}</span>
+          <div class="task-text">
+            ${t.time ? `<span class="task-time-badge">${t.time}</span>` : ''}
+            <div class="task-title">${t.title}</div>
+            ${t.hint ? `<div class="task-hint">${t.hint}</div>` : ''}
+          </div>
+        </div>
+        <div class="task-actions">
+          <button type="button" class="btn-task btn-task-right ${isRightActive}" data-action="RIGHT" data-task-id="${t.id}">
+            ✅ RIGHT
+          </button>
+          <button type="button" class="btn-task btn-task-wrong ${isWrongActive}" data-action="WRONG" data-task-id="${t.id}">
+            ❌ WRONG
+          </button>
+        </div>
+      </div>
+    `;
   }
 }
 
