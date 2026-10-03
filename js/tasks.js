@@ -13,174 +13,108 @@ class TaskManager {
     return DAY_NAMES[date.getDay()];
   }
 
-  // Generate complete list of today's tasks grouped by category
+  // Generate complete list of today's tasks grouped by category in the requested daily order
   getTasksForDate(dateStr) {
     const state = this.stateManager.getState();
     const dayName = this.getDayName(dateStr);
+    const times = state.scheduleTimes || {};
+    const isShampooDay = (state.hairCareSchedule?.shampooDays || ['Sunday', 'Thursday']).includes(dayName);
     const categories = [];
 
-    // 1. SLEEP
+    // 1. 🌅 MORNING
     categories.push({
-      id: 'sleep',
-      title: 'Sleep',
-      icon: '🌙',
-      description: 'Quality rest is the foundation of growth, recovery and energy.',
+      id: 'morning',
+      title: 'Morning Routine',
+      icon: '🌅',
+      description: 'Morning jumpstart: hydration, movement, nourishment, and grooming.',
       tasks: [
-        { id: 'sleep_hours', title: 'Sleep 7–9 hours', hint: 'Target: 7–9 hours' },
-        { id: 'sleep_wake', title: 'Wake up on planned time', hint: `Planned: ${state.reminders?.wakeUp?.time || '06:30'}` }
+        { id: 'task_wake', title: 'Wake up on planned time', time: times.wakeUp || '06:30 AM', hint: 'Start the day consistently' },
+        { id: 'task_morning_water', title: 'Morning water (500 ml)', time: times.morningWater || '06:40 AM', hint: 'Rehydrate first thing' },
+        { id: 'task_workout', title: 'Workout completed', time: times.workout || '06:45–07:15 AM', hint: '10–15 min beginner home session' },
+        { id: 'task_posture', title: '3-minute posture routine', time: times.posture || '07:10 AM', hint: 'Decompress spine & neck' },
+        { id: 'task_shower', title: 'Shower', time: times.shower || '07:15–07:30 AM', hint: 'Shower & hygiene' },
+        { id: 'task_morning_skin', title: 'Morning skin care (Wash + Moisturizer + Sunscreen)', time: times.morningSkin || '07:30 AM', hint: 'Gentle wash → moisturizer → sunscreen SPF 30+' },
+        { id: 'task_breakfast', title: 'Breakfast eaten', time: times.breakfast || '07:45 AM', hint: 'Nutritious breakfast with protein' },
+        { id: 'task_leave_college', title: 'Leave for college', time: times.leaveCollege || '08:20 AM', hint: `${state.travel?.origin || 'Kaggalipura'} → ${state.travel?.destination || 'DSATM'}` }
       ]
     });
 
-    // 2. WATER
+    // 2. 🎓 COLLEGE
+    const todayClasses = (state.timetable && state.timetable[dayName]) || [];
+    const classCountText = todayClasses.length > 0 ? `${todayClasses.length} lectures/labs scheduled` : 'Weekend/Self-study schedule';
     categories.push({
-      id: 'water',
-      title: 'Water Hydration',
-      icon: '💧',
-      description: `Daily hydration goal: ${state.targets.waterTargetL} Liters.`,
+      id: 'college',
+      title: 'College (DSATM)',
+      icon: '🎓',
+      description: `Dayananda Sagar Academy of Technology & Management (${dayName})`,
       tasks: [
-        { id: 'water_target', title: 'Water target completed', hint: `Target: ${state.targets.waterTargetL} L` }
+        { id: 'task_college_attend', title: 'Attend college classes', time: times.collegeClasses || '09:30 AM–04:00 PM', hint: classCountText }
       ]
     });
 
-    // 3. HOME WORKOUT
-    const isRestDay = dayName === 'Sunday';
-    const isRecovery = dayName === 'Wednesday';
-    const isLight = dayName === 'Saturday';
-    let workoutDesc = 'Full Body Beginner Workout (10–15 mins, no equipment)';
-    if (isRestDay) workoutDesc = 'Rest & Deep Recovery Day';
-    else if (isRecovery) workoutDesc = 'Active Recovery / Walking / Stretching';
-    else if (isLight) workoutDesc = 'Light Activity / Walking';
-
+    // 3. 🍌 AFTER COLLEGE & STUDY
     categories.push({
-      id: 'workout',
-      title: 'Home Workout',
-      icon: '💪',
-      description: `${dayName.toUpperCase()}: ${workoutDesc}`,
+      id: 'after_college',
+      title: 'After College & Study',
+      icon: '🍌',
+      description: 'Recharge with a snack, hydrate, and complete daily study focus.',
       tasks: [
-        { id: 'workout_completed', title: 'Workout completed', hint: '10–15 min beginner session' }
+        { id: 'task_snack', title: 'Evening snack', time: times.eveningSnack || '04:30–05:30 PM', hint: 'Banana / Milk / Peanuts / Fruit' },
+        { id: 'task_water_target', title: `Daily water target completed (${state.targets.waterTargetL} L)`, time: 'All Day', hint: `Target: ${state.targets.waterTargetL} Liters` },
+        { id: 'task_study', title: `Study completed (${state.targets.studyTargetMin} mins)`, time: times.study || '05:30–07:00 PM', hint: 'Class revision, assignments, and tomorrow prep' }
       ]
     });
 
-    // 4. WEIGHT GAIN / NUTRITION
+    // 4. 🍗 NUTRITION & DINNER
     categories.push({
       id: 'nutrition',
-      title: 'Weight Gain / Nutrition',
-      icon: '🥗',
+      title: 'Nutrition & Weight Gain',
+      icon: '🍗',
       description: 'Healthy whole foods, clean protein, and consistent calories for muscle gain.',
       tasks: [
-        { id: 'nutri_breakfast', title: 'Breakfast completed', hint: 'Nutritious start to the day' },
-        { id: 'nutri_lunch', title: 'Lunch completed', hint: 'Wholesome balanced meal' },
-        { id: 'nutri_dinner', title: 'Dinner completed', hint: 'Protein-rich evening dinner' },
-        { id: 'nutri_protein', title: 'Protein target completed', hint: `Target: ${state.targets.proteinTargetG} g` },
-        { id: 'nutri_produce', title: 'Fruit / vegetable eaten', hint: 'Vitamins, minerals and micronutrients' },
-        { id: 'nutri_no_skip', title: 'No major meal skipped', hint: 'Consistency is essential for healthy weight' }
+        { id: 'task_protein_food', title: 'Did you eat a protein food today?', time: 'All Day', hint: 'Eggs / Milk / Curd / Chicken / Dal / Soy / Peanuts / Paneer' },
+        { id: 'task_cook_dinner', title: 'Dinner prepared', time: times.cookDinner || '07:00 PM', hint: 'Self-cooked nourishing dinner' },
+        { id: 'task_dinner', title: 'Dinner eaten', time: times.dinner || '07:30–08:30 PM', hint: 'Balanced meal with protein and vegetables' }
       ]
     });
 
-    // 5. SKIN CARE
-    const morningSkinTasks = (state.skincareProducts || [])
-      .filter(p => p.time === 'Morning')
-      .map(p => ({
-        id: `skin_${p.id}`,
-        title: `Morning: ${p.name}`,
-        hint: 'Healthy skin & sun protection'
-      }));
-
-    const nightSkinTasks = (state.skincareProducts || [])
-      .filter(p => p.time === 'Night')
-      .map(p => ({
-        id: `skin_${p.id}`,
-        title: `Night: ${p.name}`,
-        hint: 'Cleanse & night repair'
-      }));
-
-    categories.push({
-      id: 'skincare',
-      title: 'Skin Care',
-      icon: '✨',
-      description: 'Healthy skin and daily sun protection. (No false whitening claims).',
-      tasks: [...morningSkinTasks, ...nightSkinTasks]
-    });
-
-    // 6. HAIR CARE
-    const isShampooDay = state.hairCareSchedule.shampooDays.includes(dayName);
-    const hairTasks = [];
+    // 5. 💇 HAIR CARE
+    let hairCareTask;
     if (isShampooDay) {
-      hairTasks.push({ id: 'hair_shampoo', title: 'Shampoo (Scheduled Day)', hint: `Scheduled on ${dayName}` });
-      hairTasks.push({ id: 'hair_conditioner', title: 'Conditioner', hint: 'Hydrate hair strands' });
-    }
-    (state.hairCareSchedule.customTasks || []).forEach((ct, idx) => {
-      hairTasks.push({ id: `hair_custom_${idx}`, title: ct, hint: 'Nourishment & scalp care' });
-    });
-    if (hairTasks.length === 0) {
-      hairTasks.push({ id: 'hair_basic', title: 'Daily hair care / gentle combing', hint: 'Gentle maintenance' });
+      hairCareTask = {
+        id: 'task_hair_care',
+        title: 'Hair wash (Gentle shampoo + conditioner on lengths)',
+        time: times.shower || '07:15 AM',
+        hint: `Scheduled wash day (${dayName}). Shampoo scalp gently, rinse, condition lengths.`
+      };
+    } else {
+      hairCareTask = {
+        id: 'task_hair_care',
+        title: 'Keep hair/scalp clean and avoid unnecessary products',
+        time: 'Morning & Night',
+        hint: `Non-wash day (${dayName}). Comb gently, avoid pulling or sleeping with wet hair.`
+      };
     }
 
     categories.push({
       id: 'haircare',
       title: 'Hair Care',
       icon: '💇',
-      description: isShampooDay ? `Today is a scheduled wash day (${dayName}).` : `Non-wash day. Gentle care.`,
-      tasks: hairTasks
+      description: isShampooDay ? `Today is a scheduled wash day (${dayName}).` : `Non-wash day. Gentle combing & scalp cleanliness.`,
+      tasks: [hairCareTask]
     });
 
-    // 7. HEIGHT & POSTURE SUPPORT
+    // 6. 🌙 NIGHT
     categories.push({
-      id: 'posture',
-      title: 'Height & Posture Support',
-      icon: '🧘',
-      disclaimer: 'These habits support posture, fitness and general health. Adult height cannot be guaranteed to increase.',
+      id: 'night',
+      title: 'Night & Sleep',
+      icon: '🌙',
+      description: 'Wind down, prepare for tomorrow, and get 7–9 hours of restful sleep.',
       tasks: [
-        { id: 'posture_stretch', title: 'Posture exercises / stretching', hint: 'Wall angels, chest opener, spine alignment' },
-        { id: 'posture_sleep', title: 'Good sleep posture', hint: 'Supportive spine alignment during rest' },
-        { id: 'posture_active', title: 'Regular physical activity', hint: 'Avoid prolonged slumping' }
+        { id: 'task_night_skin', title: 'Night skin care (Wash + Moisturizer)', time: times.nightSkin || '09:30 PM', hint: 'Gentle face wash → pat dry → apply moisturizer' },
+        { id: 'task_prep_tomorrow', title: 'Prepare for tomorrow', time: times.prepTomorrow || '10:30 PM', hint: 'Pack college bag, iron clothes, set morning alarm' },
+        { id: 'task_sleep', title: `Sleep ${state.targets.sleepTargetHours} hours`, time: times.sleep || '11:00 PM', hint: 'Spine alignment & restorative rest' }
       ]
-    });
-
-    // 8. COLLEGE (DSATM)
-    const todayClasses = state.timetable[dayName] || [];
-    const collegeTasks = [];
-    if (todayClasses.length > 0) {
-      collegeTasks.push({ id: 'college_attend', title: "Attend today's DSATM classes", hint: `${todayClasses.length} lectures/labs scheduled` });
-      collegeTasks.push({ id: 'college_notes', title: "Take & organize class notes", hint: 'Active lecture engagement' });
-    } else {
-      collegeTasks.push({ id: 'college_weekend', title: 'College prep / lab record completion', hint: 'Weekend/holiday schedule' });
-    }
-
-    categories.push({
-      id: 'college',
-      title: 'College (DSATM)',
-      icon: '🎓',
-      description: `Dayananda Sagar Academy of Technology & Management (${dayName})`,
-      tasks: collegeTasks
-    });
-
-    // 9. STUDY
-    categories.push({
-      id: 'study',
-      title: 'Study & Academic Mastery',
-      icon: '📚',
-      description: `Daily focus target: ${state.targets.studyTargetMin} minutes.`,
-      tasks: [
-        { id: 'study_revision', title: "Today's class revision", hint: 'Solidify what was taught today' },
-        { id: 'study_assignments', title: 'Assignment / lab work', hint: 'Keep up with deadlines' },
-        { id: 'study_prep', title: "Tomorrow's preparation", hint: 'Preview upcoming topics' }
-      ]
-    });
-
-    // 10. COOKING
-    const cookingTasks = (state.cookingTasks || []).map(c => ({
-      id: `cook_${c.id}`,
-      title: c.name,
-      hint: 'Self-cooked nourishing food'
-    }));
-
-    categories.push({
-      id: 'cooking',
-      title: "Today's Cooking",
-      icon: '🍳',
-      description: 'Living alone & cooking your own nutritious meals.',
-      tasks: cookingTasks
     });
 
     return categories;
@@ -197,6 +131,12 @@ class TaskManager {
     let remaining = 0;
 
     const userTasks = record.tasks || {};
+
+    // Check if water consumed reached target, auto-mark water target task
+    const waterTarget = this.stateManager.getState().targets?.waterTargetL || 3.0;
+    if ((record.waterConsumedL || 0) >= waterTarget && userTasks['task_water_target'] !== 'DONE') {
+      userTasks['task_water_target'] = 'DONE';
+    }
 
     for (const cat of categories) {
       for (const t of cat.tasks) {

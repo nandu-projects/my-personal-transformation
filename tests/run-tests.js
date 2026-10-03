@@ -45,6 +45,10 @@ it('should load default state when storage is empty', () => {
   assert.strictEqual(state.targets.waterTargetL, 3.0);
   assert.strictEqual(state.targets.proteinTargetG, 70);
   assert.strictEqual(state.travel.destination, 'DSATM');
+  assert.ok(state.scheduleTimes, 'scheduleTimes should exist in default state');
+  assert.strictEqual(state.scheduleTimes.wakeUp, '06:30 AM');
+  assert.ok(Array.isArray(state.proteinFoodsList), 'proteinFoodsList should exist');
+  assert.ok(Array.isArray(state.foodOptions.breakfast), 'breakfast food options should exist');
 });
 
 it('should correctly calculate day numbers from start date', () => {
@@ -65,28 +69,43 @@ it('should save and update daily records', () => {
 
 // 2. TASK TESTS
 console.log('\nTesting TaskManager...');
-it('should generate all required habit categories for a weekday', () => {
+it('should generate simplified 15-20 core daily actions with AM/PM timings in requested order', () => {
   const sm = new StateManager();
   const tm = new TaskManager(sm);
   const categories = tm.getTasksForDate('2026-10-05'); // Monday
   const catIds = categories.map(c => c.id);
 
-  assert.ok(catIds.includes('sleep'), 'Sleep category missing');
-  assert.ok(catIds.includes('water'), 'Water category missing');
-  assert.ok(catIds.includes('workout'), 'Workout category missing');
-  assert.ok(catIds.includes('nutrition'), 'Nutrition category missing');
-  assert.ok(catIds.includes('skincare'), 'Skincare category missing');
-  assert.ok(catIds.includes('haircare'), 'Haircare category missing');
-  assert.ok(catIds.includes('posture'), 'Posture category missing');
-  assert.ok(catIds.includes('college'), 'College category missing');
-  assert.ok(catIds.includes('study'), 'Study category missing');
-  assert.ok(catIds.includes('cooking'), 'Cooking category missing');
+  // Verify daily order: morning, college, after_college, nutrition, haircare, night
+  assert.deepStrictEqual(catIds, ['morning', 'college', 'after_college', 'nutrition', 'haircare', 'night']);
+
+  let totalTasks = 0;
+  categories.forEach(cat => {
+    cat.tasks.forEach(t => {
+      totalTasks++;
+      assert.ok(t.title, 'Every task must have a title');
+      assert.ok(t.time, `Task ${t.id} must have a clear time display`);
+    });
+  });
+
+  // Verify 15-20 daily actions maximum
+  assert.ok(totalTasks >= 15 && totalTasks <= 20, `Expected 15–20 tasks, got ${totalTasks}`);
+});
+
+it('should auto-mark water target completed when water consumed reaches target', () => {
+  const sm = new StateManager();
+  const tm = new TaskManager(sm);
+  const dateStr = '2026-10-05';
+
+  sm.updateRecord(dateStr, { waterConsumedL: 3.0 });
+  const stats = tm.calculateStats(dateStr);
+  const record = sm.getRecord(dateStr);
+  assert.strictEqual(record.tasks['task_water_target'], 'DONE');
 });
 
 it('should calculate task stats correctly (completed, not completed, remaining, %)', () => {
   const sm = new StateManager();
   const tm = new TaskManager(sm);
-  const dateStr = '2026-10-05';
+  const dateStr = '2026-10-06';
 
   const categories = tm.getTasksForDate(dateStr);
   const allTasks = [];
@@ -140,8 +159,8 @@ it('should allow adding, updating, and deleting classes for any day', () => {
 
   // Add class
   const added = ttm.addClass('Tuesday', {
-    startTime: '14:00',
-    endTime: '15:00',
+    startTime: '02:00 PM',
+    endTime: '03:00 PM',
     subject: 'Cloud Computing Lab',
     room: 'DSATM CS Lab'
   });
@@ -164,7 +183,7 @@ it('should allow adding, updating, and deleting classes for any day', () => {
 
 // 5. ROUTINE TESTS
 console.log('\nTesting Daily Routine Timeline...');
-it('should dynamically include DSATM classes and travel in the daily timeline', () => {
+it('should dynamically include DSATM classes, AM/PM timings, and travel in the daily timeline', () => {
   const sm = new StateManager();
   const ttm = new TimetableManager(sm);
   const rm = new RoutineManager(sm, ttm);
@@ -173,7 +192,7 @@ it('should dynamically include DSATM classes and travel in the daily timeline', 
   assert.ok(timeline.length > 5, 'Timeline should have multiple routine events');
 
   const travelItems = timeline.filter(t => t.tag === 'travel');
-  assert.ok(travelItems.length >= 2, 'Should contain morning travel and evening return commute');
+  assert.ok(travelItems.length >= 2, 'Should contain morning commute and evening return commute');
 
   const collegeItems = timeline.filter(t => t.tag === 'college');
   assert.ok(collegeItems.length >= 1, 'Should contain DSATM college classes');

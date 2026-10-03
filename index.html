@@ -39,7 +39,7 @@
 
     <!-- SCREEN 1: HOME (TODAY'S ROUTINE & TASKS) -->
     <main id="screenHome" class="screen active">
-      <!-- Today's Progress Hero Card -->
+      <!-- 2. Today's Progress Hero Card -->
       <section class="progress-card">
         <div class="progress-header">
           <div>
@@ -69,256 +69,357 @@
         </div>
       </section>
 
-      <!-- Category 1: SLEEP -->
-      <section class="section-card" id="cat-sleep">
-        <div class="section-head">
+      <!-- 3. 🌅 MORNING SECTION -->
+      <section class="section-card" id="cat-morning">
+        <div class="section-head collapsible" data-target="body-morning">
           <div class="section-title-wrap">
-            <span class="section-icon">🌙</span>
-            <h2 class="section-title">Sleep</h2>
+            <span class="section-icon">🌅</span>
+            <div>
+              <h2 class="section-title">Morning Routine</h2>
+              <div class="section-desc" style="margin-bottom: 0;">Wake, water, workout, shower, skin care, breakfast & leave for college</div>
+            </div>
           </div>
-        </div>
-        <div class="section-desc">Quality rest supports physical recovery and mental focus.</div>
-
-        <div class="metric-row">
-          <span class="metric-label">Actual Sleep Hours:</span>
-          <div class="metric-input-wrap">
-            <input type="number" id="inputSleepHours" class="metric-input" min="0" max="24" step="0.5" placeholder="8.0">
-            <span style="font-size: 0.85rem; color: var(--text-muted);">hrs</span>
-          </div>
-        </div>
-        <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 12px;">
-          Target: <strong id="lblSleepTarget">7–9 hours</strong>
+          <span class="section-chevron">▼</span>
         </div>
 
-        <div class="task-list" id="taskList-sleep"></div>
+        <div class="section-body" id="body-morning">
+          <!-- Guided Workout & Posture Quick Action -->
+          <div style="display: flex; gap: 8px; margin: 8px 0 14px 0;">
+            <button class="btn-start-workout" id="btnStartWorkoutModal" style="flex: 2; margin-bottom: 0; min-height: 44px; font-size: 0.88rem;">
+              <span>▶</span> Start Workout (10–15 min)
+            </button>
+            <button class="btn-chip" id="btnViewPostureGuide" style="flex: 1.2; min-height: 44px; font-size: 0.8rem; margin-bottom: 0;">
+              🧘 Posture (3 min)
+            </button>
+          </div>
+
+          <!-- Morning Skin Care 3-Step Checklist -->
+          <div class="substep-card">
+            <div class="substep-header">
+              <strong style="color: var(--text-primary); font-size: 0.85rem;">🌞 Morning Skin Care (<span id="lblTimeMorningSkin">07:30 AM</span>)</strong>
+              <span style="font-size: 0.72rem; color: var(--color-brand); font-weight: 700;">3 Quick Steps</span>
+            </div>
+            <div class="substep-instruction">
+              "Wash gently → apply moisturizer → apply sunscreen before leaving for college."
+            </div>
+            <div class="substep-list">
+              <label class="substep-item" id="lblSkinStepMorningWash">
+                <span>1. Face wash</span>
+                <input type="checkbox" id="cbSkinMorningWash">
+              </label>
+              <label class="substep-item" id="lblSkinStepMorningMoist">
+                <span>2. Moisturizer</span>
+                <input type="checkbox" id="cbSkinMorningMoist">
+              </label>
+              <label class="substep-item" id="lblSkinStepMorningSun">
+                <span>3. Sunscreen SPF 30+</span>
+                <input type="checkbox" id="cbSkinMorningSun">
+              </label>
+            </div>
+          </div>
+
+          <!-- Breakfast Food Options Checklist -->
+          <div class="substep-card">
+            <div class="substep-header">
+              <strong style="color: var(--text-primary); font-size: 0.85rem;">🍳 Breakfast (<span id="lblTimeBreakfast">07:45 AM</span>)</strong>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">Choose what you ate:</span>
+            </div>
+            <div class="food-checkbox-grid" id="breakfastFoodsGrid"></div>
+            <div style="display: flex; gap: 6px;">
+              <input type="text" id="inputCustomBreakfast" class="form-control" placeholder="Add custom breakfast item..." style="flex: 1; font-size: 0.82rem; padding: 6px 10px;">
+              <button class="btn-chip" id="btnAddCustomBreakfast" style="padding: 6px 12px; font-size: 0.8rem;">Add</button>
+            </div>
+          </div>
+
+          <!-- Morning Core Tasks Checklist -->
+          <div class="task-list" id="taskList-morning"></div>
+        </div>
       </section>
 
-      <!-- Category 2: WATER -->
-      <section class="section-card" id="cat-water">
-        <div class="section-head">
-          <div class="section-title-wrap">
-            <span class="section-icon">💧</span>
-            <h2 class="section-title">Water Hydration</h2>
-          </div>
-        </div>
-        
-        <div class="metric-row">
-          <span class="metric-label">Water Consumed:</span>
-          <div class="metric-input-wrap">
-            <strong id="lblWaterConsumed" style="font-size: 1.15rem; color: var(--color-info);">0.0</strong>
-            <span style="font-size: 0.85rem; color: var(--text-muted);">/ <span id="lblWaterTarget">3.0</span> L</span>
-          </div>
-        </div>
-
-        <div class="btn-group-chips">
-          <button class="btn-chip" id="btnAddWater250">+250 ml</button>
-          <button class="btn-chip" id="btnAddWater500">+500 ml</button>
-          <button class="btn-chip" id="btnAddWater1000">+1 L</button>
-          <button class="btn-chip chip-reset" id="btnResetWater">Reset</button>
-        </div>
-
-        <div class="task-list" id="taskList-water"></div>
-      </section>
-
-      <!-- Category 3: HOME WORKOUT -->
-      <section class="section-card" id="cat-workout">
-        <div class="section-head">
-          <div class="section-title-wrap">
-            <span class="section-icon">💪</span>
-            <h2 class="section-title">Home Workout</h2>
-          </div>
-        </div>
-        <div class="section-desc" id="lblWorkoutSummary">Full Body Beginner Routine (10–15 mins, no gym equipment needed).</div>
-
-        <button class="btn-start-workout" id="btnStartWorkoutModal">
-          <span>▶</span> Start Guided Workout (10–15 min)
-        </button>
-
-        <div class="task-list" id="taskList-workout"></div>
-      </section>
-
-      <!-- Category 4: WEIGHT GAIN / NUTRITION -->
-      <section class="section-card" id="cat-nutrition">
-        <div class="section-head">
-          <div class="section-title-wrap">
-            <span class="section-icon">🥗</span>
-            <h2 class="section-title">Weight Gain / Nutrition</h2>
-          </div>
-        </div>
-        <div class="section-desc">Healthy whole foods, clean protein, and consistent calories. No dirty bulking.</div>
-
-        <div class="metric-row">
-          <span class="metric-label">Today's Weight:</span>
-          <div class="metric-input-wrap">
-            <input type="number" id="inputTodayWeight" class="metric-input" step="0.1" placeholder="60.0">
-            <span style="font-size: 0.85rem; color: var(--text-muted);">kg</span>
-          </div>
-        </div>
-
-        <div class="metric-row">
-          <span class="metric-label">Protein Consumed:</span>
-          <div class="metric-input-wrap">
-            <input type="number" id="inputProteinConsumed" class="metric-input" placeholder="0">
-            <span style="font-size: 0.85rem; color: var(--text-muted);">/ <span id="lblProteinTarget">70</span> g</span>
-          </div>
-        </div>
-
-        <div class="btn-group-chips">
-          <button class="btn-chip" id="btnAddProtein10">+10g</button>
-          <button class="btn-chip" id="btnAddProtein20">+20g</button>
-          <button class="btn-chip" id="btnAddProtein30">+30g</button>
-          <button class="btn-chip chip-reset" id="btnResetProtein">Reset</button>
-        </div>
-
-        <div class="task-list" id="taskList-nutrition"></div>
-      </section>
-
-      <!-- Category 5: SKIN CARE -->
-      <section class="section-card" id="cat-skincare">
-        <div class="section-head">
-          <div class="section-title-wrap">
-            <span class="section-icon">✨</span>
-            <h2 class="section-title">Skin Care</h2>
-          </div>
-        </div>
-        <div class="section-disclaimer">
-          Healthy skin hydration & daily sun protection. (This app does not promote or claim skin whitening).
-        </div>
-        <div class="task-list" id="taskList-skincare"></div>
-      </section>
-
-      <!-- Category 6: HAIR CARE -->
-      <section class="section-card" id="cat-haircare">
-        <div class="section-head">
-          <div class="section-title-wrap">
-            <span class="section-icon">💇</span>
-            <h2 class="section-title">Hair Care</h2>
-          </div>
-        </div>
-        <div class="section-desc" id="lblHairCareNotice">Configured wash days: Sunday & Thursday. Gentle care on other days.</div>
-        <div class="task-list" id="taskList-haircare"></div>
-      </section>
-
-      <!-- Category 7: HEIGHT & POSTURE SUPPORT -->
-      <section class="section-card" id="cat-posture">
-        <div class="section-head">
-          <div class="section-title-wrap">
-            <span class="section-icon">🧘</span>
-            <h2 class="section-title">Height & Posture Support</h2>
-          </div>
-        </div>
-        <div class="section-disclaimer">
-          These habits support posture, fitness and general health. Adult height cannot be guaranteed to increase.
-        </div>
-        <button class="btn-chip" id="btnViewPostureGuide" style="width: 100%; margin-bottom: 12px;">
-          📖 View Daily 3-Min Posture Stretches
-        </button>
-        <div class="task-list" id="taskList-posture"></div>
-      </section>
-
-      <!-- Category 8: COLLEGE (DSATM) -->
+      <!-- 4. 🎓 COLLEGE SECTION -->
       <section class="section-card" id="cat-college">
-        <div class="section-head">
+        <div class="section-head collapsible" data-target="body-college">
           <div class="section-title-wrap">
             <span class="section-icon">🎓</span>
-            <h2 class="section-title">College (DSATM)</h2>
+            <div>
+              <h2 class="section-title">College (DSATM)</h2>
+              <div class="section-desc" style="margin-bottom: 0;">Dayananda Sagar Academy of Technology & Management</div>
+            </div>
           </div>
-        </div>
-        <div class="section-desc">Dayananda Sagar Academy of Technology & Management</div>
-
-        <!-- Today's College Classes Preview -->
-        <div style="margin-bottom: 14px;">
-          <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: var(--text-secondary);">
-            Today's Classes:
-          </div>
-          <div id="homeTodayClassesList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+          <span class="section-chevron">▼</span>
         </div>
 
-        <div class="task-list" id="taskList-college"></div>
+        <div class="section-body" id="body-college">
+          <!-- Travel Timing Banner -->
+          <div class="metric-row" style="margin-top: 8px;">
+            <span class="metric-label">Commute (Kaggalipura ↔ DSATM):</span>
+            <div style="font-size: 0.8rem; text-align: right; color: var(--text-primary); line-height: 1.4;">
+              Leave home: <strong id="lblTravelLeave">08:20 AM</strong> (Arrival: <strong id="lblTravelArrival">08:50 AM</strong>)<br>
+              Leave DSATM: <strong id="lblTravelReturn">04:30 PM</strong>
+            </div>
+          </div>
+
+          <!-- Today's Classes List -->
+          <div style="margin-bottom: 12px;">
+            <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">
+              Today's Schedule:
+            </div>
+            <div id="homeTodayClassesList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+          </div>
+
+          <div class="task-list" id="taskList-college"></div>
+        </div>
       </section>
 
-      <!-- Category 9: TRAVEL -->
-      <section class="section-card" id="cat-travel">
-        <div class="section-head">
+      <!-- 5. 🍌 AFTER COLLEGE & STUDY SECTION -->
+      <section class="section-card" id="cat-after-college">
+        <div class="section-head collapsible" data-target="body-after-college">
           <div class="section-title-wrap">
-            <span class="section-icon">🚌</span>
-            <h2 class="section-title">Travel & Commute</h2>
+            <span class="section-icon">🍌</span>
+            <div>
+              <h2 class="section-title">After College & Study</h2>
+              <div class="section-desc" style="margin-bottom: 0;">Evening snack, hydration, and academic focus</div>
+            </div>
           </div>
-        </div>
-        <div class="section-desc">Kaggalipura ↔ Dayananda Sagar Academy of Technology & Management (DSATM)</div>
-
-        <div class="metric-row">
-          <span class="metric-label">Morning Commute:</span>
-          <div style="font-size: 0.82rem; text-align: right; color: var(--text-primary);">
-            Leave home by: <strong id="lblTravelLeave">08:20</strong><br>
-            Expected arrival: <strong id="lblTravelArrival">08:50</strong>
-          </div>
+          <span class="section-chevron">▼</span>
         </div>
 
-        <div class="metric-row">
-          <span class="metric-label">Evening Return:</span>
-          <div style="font-size: 0.82rem; text-align: right; color: var(--text-primary);">
-            Leave DSATM by: <strong id="lblTravelReturn">16:30</strong>
+        <div class="section-body" id="body-after-college">
+          <!-- Evening Snack Selector -->
+          <div class="substep-card" style="margin-top: 8px;">
+            <div class="substep-header">
+              <strong style="color: var(--text-primary); font-size: 0.85rem;">🍌 Evening Snack (<span id="lblTimeSnack">04:30–05:30 PM</span>)</strong>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">Optional options:</span>
+            </div>
+            <div class="food-checkbox-grid" id="snackFoodsGrid"></div>
           </div>
+
+          <!-- Simple Water Hydration Box -->
+          <div class="substep-card">
+            <div class="substep-header">
+              <strong style="color: var(--color-info); font-size: 0.9rem;">💧 Water Hydration</strong>
+              <span id="lblWaterStatusBadge" style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">
+                Target: <span id="lblWaterTarget">3.0</span> L
+              </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px;">
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Consumed:</span>
+              <strong id="lblWaterConsumed" style="font-size: 1.25rem; color: var(--color-info);">0.0 L</strong>
+            </div>
+
+            <!-- Water Progress Bar -->
+            <div class="water-progress-track">
+              <div class="water-progress-fill" id="waterProgressFill" style="width: 0%;"></div>
+            </div>
+            <div style="font-size: 0.76rem; color: var(--text-muted); text-align: right; margin-bottom: 8px;">
+              Progress: <span id="lblWaterPercent">0%</span>
+            </div>
+
+            <div class="btn-group-chips" style="margin-bottom: 0;">
+              <button class="btn-chip" id="btnAddWater250">+250 ml</button>
+              <button class="btn-chip" id="btnAddWater500">+500 ml</button>
+              <button class="btn-chip" id="btnAddWater1000">+1 L</button>
+              <button class="btn-chip chip-reset" id="btnResetWater">Reset</button>
+            </div>
+          </div>
+
+          <!-- Study Focus Widget -->
+          <div class="substep-card">
+            <div class="substep-header">
+              <strong style="color: var(--text-primary); font-size: 0.88rem;">📚 Study & Class Revision (<span id="lblTimeStudy">05:30–07:00 PM</span>)</strong>
+              <span style="font-size: 0.75rem; color: var(--color-brand); font-weight: 700;">Target: <span id="lblStudyTarget">90</span> min</span>
+            </div>
+
+            <div class="metric-row" style="margin: 8px 0;">
+              <span class="metric-label">Study Completed:</span>
+              <div class="metric-input-wrap">
+                <input type="number" id="inputStudyMinutes" class="metric-input" placeholder="0">
+                <span style="font-size: 0.85rem; color: var(--text-muted);">mins</span>
+              </div>
+            </div>
+
+            <div class="btn-group-chips">
+              <button class="btn-chip" id="btnStudyTimer15">+15m</button>
+              <button class="btn-chip" id="btnStudyTimer30">+30m</button>
+              <button class="btn-chip" id="btnStudyTimerToggle" style="background: var(--bg-card-hover); font-weight: 700;">⏱️ Start Timer</button>
+              <button class="btn-chip chip-reset" id="btnResetStudy">Reset</button>
+            </div>
+            <div id="lblStudyTimerStatus" style="font-size: 0.8rem; color: var(--color-brand); text-align: center; margin-bottom: 6px; display: none;">
+              Timer Active: <span id="lblStudyTimerCountdown">00:00</span>
+            </div>
+          </div>
+
+          <div class="task-list" id="taskList-after_college"></div>
         </div>
       </section>
 
-      <!-- Category 10: STUDY -->
-      <section class="section-card" id="cat-study">
-        <div class="section-head">
+      <!-- 6. 🍗 NUTRITION & DINNER SECTION -->
+      <section class="section-card" id="cat-nutrition">
+        <div class="section-head collapsible" data-target="body-nutrition">
           <div class="section-title-wrap">
-            <span class="section-icon">📚</span>
-            <h2 class="section-title">Study & Academics</h2>
+            <span class="section-icon">🍗</span>
+            <div>
+              <h2 class="section-title">Protein & Weight Gain</h2>
+              <div class="section-desc" style="margin-bottom: 0;">Healthy weight, clean muscle foods & dinner</div>
+            </div>
           </div>
+          <span class="section-chevron">▼</span>
         </div>
 
-        <div class="metric-row">
-          <span class="metric-label">Study Completed:</span>
-          <div class="metric-input-wrap">
-            <input type="number" id="inputStudyMinutes" class="metric-input" placeholder="0">
-            <span style="font-size: 0.85rem; color: var(--text-muted);">/ <span id="lblStudyTarget">90</span> min</span>
+        <div class="section-body" id="body-nutrition">
+          <!-- Weight & Protein Tracker Summary -->
+          <div class="metric-row" style="margin-top: 8px;">
+            <span class="metric-label">Today's Weight:</span>
+            <div class="metric-input-wrap">
+              <input type="number" id="inputTodayWeight" class="metric-input" step="0.1" placeholder="60.0">
+              <span style="font-size: 0.85rem; color: var(--text-muted);">kg</span>
+            </div>
           </div>
-        </div>
 
-        <!-- Simple Study Timer -->
-        <div class="btn-group-chips">
-          <button class="btn-chip" id="btnStudyTimer15">+15m</button>
-          <button class="btn-chip" id="btnStudyTimer30">+30m</button>
-          <button class="btn-chip" id="btnStudyTimerToggle">⏱️ Start Timer</button>
-          <button class="btn-chip chip-reset" id="btnResetStudy">Reset</button>
-        </div>
-        <div id="lblStudyTimerStatus" style="font-size: 0.8rem; color: var(--color-brand); text-align: center; margin-bottom: 12px; display: none;">
-          Timer Running: <span id="lblStudyTimerCountdown">00:00</span>
-        </div>
+          <div class="metric-row">
+            <span class="metric-label">Protein Consumed:</span>
+            <div class="metric-input-wrap">
+              <input type="number" id="inputProteinConsumed" class="metric-input" placeholder="0">
+              <span style="font-size: 0.85rem; color: var(--text-muted);">/ <span id="lblProteinTarget">70</span> g</span>
+            </div>
+          </div>
 
-        <div class="task-list" id="taskList-study"></div>
+          <div class="btn-group-chips">
+            <button class="btn-chip" id="btnAddProtein10">+10g</button>
+            <button class="btn-chip" id="btnAddProtein20">+20g</button>
+            <button class="btn-chip" id="btnAddProtein30">+30g</button>
+            <button class="btn-chip chip-reset" id="btnResetProtein">Reset</button>
+          </div>
+
+          <!-- Practical Protein Foods Checklist & Quantities -->
+          <div class="substep-card">
+            <div class="substep-header">
+              <strong style="font-size: 0.85rem; color: var(--text-primary);">💪 Practical Protein Foods Eaten Today:</strong>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">
+              Check what you ate today (no need to eat everything every day):
+            </div>
+            <div class="protein-food-list" id="proteinFoodsListContainer"></div>
+          </div>
+
+          <!-- Cooking & Dinner Checklist -->
+          <div class="substep-card">
+            <div class="substep-header">
+              <strong style="font-size: 0.85rem; color: var(--text-primary);">🍳 Self-Cooking Status:</strong>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+              <label class="substep-item" id="lblCookBfast">
+                <span>Breakfast</span>
+                <input type="checkbox" id="cbCookBfast">
+              </label>
+              <label class="substep-item" id="lblCookLunch">
+                <span>Lunch</span>
+                <input type="checkbox" id="cbCookLunch">
+              </label>
+              <label class="substep-item" id="lblCookDinner">
+                <span>Dinner</span>
+                <input type="checkbox" id="cbCookDinner">
+              </label>
+            </div>
+
+            <div class="substep-header">
+              <strong style="font-size: 0.85rem; color: var(--text-primary);">🍚 Dinner Options (<span id="lblTimeDinner">07:30–08:30 PM</span>):</strong>
+            </div>
+            <div class="food-checkbox-grid" id="dinnerFoodsGrid"></div>
+          </div>
+
+          <div class="task-list" id="taskList-nutrition"></div>
+        </div>
       </section>
 
-      <!-- Category 11: TODAY'S COOKING -->
-      <section class="section-card" id="cat-cooking">
-        <div class="section-head">
+      <!-- 7. 💇 HAIR CARE SECTION -->
+      <section class="section-card" id="cat-haircare">
+        <div class="section-head collapsible" data-target="body-haircare">
           <div class="section-title-wrap">
-            <span class="section-icon">🍳</span>
-            <h2 class="section-title">Today's Cooking</h2>
+            <span class="section-icon">💇</span>
+            <div>
+              <h2 class="section-title">Hair Care</h2>
+              <div class="section-desc" style="margin-bottom: 0;" id="lblHairCareNotice">Gentle care & scheduled wash days</div>
+            </div>
           </div>
+          <span class="section-chevron">▼</span>
         </div>
-        <div class="section-desc">Cooking your own nourishing meals while living independently.</div>
-        <div class="task-list" id="taskList-cooking"></div>
+
+        <div class="section-body" id="body-haircare">
+          <div id="hairCareContentContainer" style="margin-top: 8px;"></div>
+          <div class="task-list" id="taskList-haircare"></div>
+        </div>
       </section>
 
-      <!-- Category 12: DAILY TIMELINE PREVIEW -->
-      <section class="section-card" id="cat-timeline">
-        <div class="section-head">
+      <!-- 8. 🌙 NIGHT SECTION -->
+      <section class="section-card" id="cat-night">
+        <div class="section-head collapsible" data-target="body-night">
+          <div class="section-title-wrap">
+            <span class="section-icon">🌙</span>
+            <div>
+              <h2 class="section-title">Night & Sleep</h2>
+              <div class="section-desc" style="margin-bottom: 0;">Night skin care, prepare for tomorrow, and restorative sleep</div>
+            </div>
+          </div>
+          <span class="section-chevron">▼</span>
+        </div>
+
+        <div class="section-body" id="body-night">
+          <!-- Night Skin Care Steps -->
+          <div class="substep-card" style="margin-top: 8px;">
+            <div class="substep-header">
+              <strong style="font-size: 0.85rem; color: var(--text-primary);">🌙 Night Skin Care (<span id="lblTimeNightSkin">09:30 PM</span>)</strong>
+              <span style="font-size: 0.72rem; color: var(--color-brand); font-weight: 700;">2 Gentle Steps</span>
+            </div>
+            <div class="substep-instruction">
+              "Wash your face gently → dry without rubbing hard → apply moisturizer."
+            </div>
+            <div class="substep-list">
+              <label class="substep-item" id="lblSkinStepNightWash">
+                <span>1. Face wash</span>
+                <input type="checkbox" id="cbSkinNightWash">
+              </label>
+              <label class="substep-item" id="lblSkinStepNightMoist">
+                <span>2. Moisturizer</span>
+                <input type="checkbox" id="cbSkinNightMoist">
+              </label>
+            </div>
+          </div>
+
+          <!-- Sleep Hours Entry -->
+          <div class="metric-row">
+            <span class="metric-label">Actual Sleep Hours:</span>
+            <div class="metric-input-wrap">
+              <input type="number" id="inputSleepHours" class="metric-input" min="0" max="24" step="0.5" placeholder="8.0">
+              <span style="font-size: 0.85rem; color: var(--text-muted);">hrs</span>
+            </div>
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 10px;">
+            Target: <strong id="lblSleepTarget">7–9 hours</strong> (Rest & Muscle Repair)
+          </div>
+
+          <div class="task-list" id="taskList-night"></div>
+        </div>
+      </section>
+
+      <!-- 9. 📋 TODAY'S ROUTINE TIMELINE (COLLAPSIBLE) -->
+      <section class="section-card collapsed" id="cat-timeline">
+        <div class="section-head collapsible" data-target="body-timeline">
           <div class="section-title-wrap">
             <span class="section-icon">📋</span>
-            <h2 class="section-title">Today's Routine Timeline</h2>
+            <div>
+              <h2 class="section-title">Full Daily Timeline</h2>
+              <div class="section-desc" style="margin-bottom: 0;">Unified schedule (routine + DSATM college classes)</div>
+            </div>
           </div>
+          <span class="section-chevron">▼</span>
         </div>
-        <div class="section-desc">Adjusts automatically around your DSATM college timetable.</div>
-        <div class="timeline-list" id="homeTimelineList"></div>
+        <div class="section-body" id="body-timeline">
+          <div class="timeline-list" id="homeTimelineList" style="margin-top: 8px;"></div>
+        </div>
       </section>
 
-      <!-- Section 14: TODAY'S RESULT -->
+      <!-- 10. TODAY'S RESULT -->
       <section class="daily-result-card">
         <div class="result-title">Today's Result</div>
 
@@ -433,6 +534,74 @@
         </div>
       </section>
 
+      <!-- 🕒 Daily Schedule Timings (All Editable in Settings!) -->
+      <section class="settings-group">
+        <h3>⏰ Daily Routine Timings (AM / PM)</h3>
+        <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 12px;">
+          Customize the timing of your daily checklist actions:
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingWake">Wake Up</label>
+          <input type="text" id="timeSettingWake" class="form-control" style="width: 130px;" placeholder="06:30 AM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingWater">Morning Water</label>
+          <input type="text" id="timeSettingWater" class="form-control" style="width: 130px;" placeholder="06:40 AM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingWorkout">Workout</label>
+          <input type="text" id="timeSettingWorkout" class="form-control" style="width: 130px;" placeholder="06:45–07:15 AM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingPosture">Posture Routine</label>
+          <input type="text" id="timeSettingPosture" class="form-control" style="width: 130px;" placeholder="07:10 AM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingShower">Shower</label>
+          <input type="text" id="timeSettingShower" class="form-control" style="width: 130px;" placeholder="07:15–07:30 AM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingMorningSkin">Morning Skin Care</label>
+          <input type="text" id="timeSettingMorningSkin" class="form-control" style="width: 130px;" placeholder="07:30 AM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingBreakfast">Breakfast</label>
+          <input type="text" id="timeSettingBreakfast" class="form-control" style="width: 130px;" placeholder="07:45 AM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingLeave">Leave for College</label>
+          <input type="text" id="timeSettingLeave" class="form-control" style="width: 130px;" placeholder="08:20 AM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingSnack">Evening Snack</label>
+          <input type="text" id="timeSettingSnack" class="form-control" style="width: 130px;" placeholder="04:30–05:30 PM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingStudy">Study Focus</label>
+          <input type="text" id="timeSettingStudy" class="form-control" style="width: 130px;" placeholder="05:30–07:00 PM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingCookDinner">Cook Dinner</label>
+          <input type="text" id="timeSettingCookDinner" class="form-control" style="width: 130px;" placeholder="07:00 PM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingDinner">Dinner</label>
+          <input type="text" id="timeSettingDinner" class="form-control" style="width: 130px;" placeholder="07:30–08:30 PM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingNightSkin">Night Skin Care</label>
+          <input type="text" id="timeSettingNightSkin" class="form-control" style="width: 130px;" placeholder="09:30 PM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingPrep">Prepare for Tomorrow</label>
+          <input type="text" id="timeSettingPrep" class="form-control" style="width: 130px;" placeholder="10:30 PM">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="timeSettingSleep">Sleep</label>
+          <input type="text" id="timeSettingSleep" class="form-control" style="width: 130px;" placeholder="11:00 PM">
+        </div>
+      </section>
+
       <!-- Daily Targets -->
       <section class="settings-group">
         <h3>🎯 Daily Health Targets</h3>
@@ -459,7 +628,7 @@
         <h3>🚌 Commute (Kaggalipura ↔ DSATM)</h3>
         <div class="form-row">
           <label class="form-label" for="settingLeaveTime">Leave Home Time</label>
-          <input type="time" id="settingLeaveTime" class="form-control">
+          <input type="text" id="settingLeaveTime" class="form-control" style="width: 110px;" placeholder="08:20 AM">
         </div>
         <div class="form-row">
           <label class="form-label" for="settingTravelMin">Travel Duration (mins)</label>
@@ -467,7 +636,7 @@
         </div>
         <div class="form-row">
           <label class="form-label" for="settingReturnTime">Return Home Time</label>
-          <input type="time" id="settingReturnTime" class="form-control">
+          <input type="text" id="settingReturnTime" class="form-control" style="width: 110px;" placeholder="04:30 PM">
         </div>
       </section>
 
@@ -583,12 +752,12 @@
 
       <div class="form-row">
         <label class="form-label" for="modalClassStart">Start Time</label>
-        <input type="time" id="modalClassStart" class="form-control" value="09:30">
+        <input type="text" id="modalClassStart" class="form-control" value="09:30 AM" style="width: 130px;">
       </div>
 
       <div class="form-row">
         <label class="form-label" for="modalClassEnd">End Time</label>
-        <input type="time" id="modalClassEnd" class="form-control" value="10:30">
+        <input type="text" id="modalClassEnd" class="form-control" value="10:30 AM" style="width: 130px;">
       </div>
 
       <div class="form-row">
@@ -602,42 +771,42 @@
     </div>
   </div>
 
-  <!-- MODAL 3: POSTURE GUIDE -->
+  <!-- MODAL 3: POSTURE & MOBILITY GUIDE -->
   <div class="modal-overlay" id="modalPosture">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">Daily 3-Min Posture Stretches</h3>
+        <h3 class="modal-title">🧘 3-Minute Posture Routine</h3>
         <button class="btn-close-modal" id="btnClosePostureModal">✕</button>
       </div>
 
       <div class="section-disclaimer">
-        "These habits support posture, fitness and general health. Adult height cannot be guaranteed to increase."
+        "Helps posture, mobility and general fitness. It does not guarantee an increase in adult height."
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem; line-height: 1.5;">
         <div style="background: var(--bg-card); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
           <strong style="color: var(--color-brand); display: block; margin-bottom: 4px;">1. Wall Angels (45 sec)</strong>
-          Stand with back, head, and elbows flat against wall. Slide arms up and down keeping shoulder blades tight.
+          Stand with back, head, and elbows flat against wall. Slide arms up and down keeping shoulder blades engaged.
         </div>
 
         <div style="background: var(--bg-card); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
           <strong style="color: var(--color-brand); display: block; margin-bottom: 4px;">2. Chin Tucks (30 sec)</strong>
-          Look forward, gently draw chin straight backward (like making a double chin). Hold 3s, release. Corrects forward neck posture from study/screens.
+          Look forward, gently draw chin straight backward (like making a double chin). Hold 3s, release. Corrects forward neck posture from study and screens.
         </div>
 
         <div style="background: var(--bg-card); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
           <strong style="color: var(--color-brand); display: block; margin-bottom: 4px;">3. Doorway Chest Stretch (45 sec)</strong>
-          Place forearms on door frame, step one foot forward and feel chest expand. Opens rounded shoulders.
+          Place forearms on door frame, step one foot forward and feel chest open comfortably.
         </div>
 
         <div style="background: var(--bg-card); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-          <strong style="color: var(--color-brand); display: block; margin-bottom: 4px;">4. Cat-Cow Spine Mobility (60 sec)</strong>
+          <strong style="color: var(--color-brand); display: block; margin-bottom: 4px;">4. Cat-Cow Spine Flow (60 sec)</strong>
           On hands and knees, alternate gentle arching and rounding of spine to decompress vertebrae.
         </div>
       </div>
 
       <button class="btn-chip" id="btnDonePostureModal" style="width: 100%; margin-top: 16px; background: var(--color-brand); color: #fff; font-weight: 700;">
-        Got it!
+        Mark Posture Routine Done ✅
       </button>
     </div>
   </div>

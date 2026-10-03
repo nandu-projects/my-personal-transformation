@@ -38,24 +38,66 @@ const DEFAULT_TIMETABLE = {
   Sunday: []
 };
 
+const DEFAULT_SCHEDULE_TIMES = {
+  wakeUp: '06:30 AM',
+  morningWater: '06:40 AM',
+  workout: '06:45–07:15 AM',
+  posture: '07:10 AM',
+  shower: '07:15–07:30 AM',
+  morningSkin: '07:30 AM',
+  breakfast: '07:45 AM',
+  leaveCollege: '08:20 AM',
+  collegeClasses: '09:30 AM–04:00 PM',
+  afternoonWater: '04:15 PM',
+  eveningSnack: '04:30–05:30 PM',
+  study: '05:30–07:00 PM',
+  cookDinner: '07:00 PM',
+  dinner: '07:30–08:30 PM',
+  nightSkin: '09:30 PM',
+  prepTomorrow: '10:30 PM',
+  sleep: '11:00 PM'
+};
+
+const DEFAULT_FOOD_OPTIONS = {
+  breakfast: ['2–3 Eggs', 'Oats', 'Milk', 'Banana', 'Idli / Dosa', 'Roti', 'Peanuts'],
+  lunch: ['Rice / Roti', 'Dal', 'Vegetables', 'Chicken / Egg / Paneer / Soy', 'Curd'],
+  snack: ['Banana', 'Milk', 'Curd', 'Peanuts', 'Eggs', 'Fruit', 'Other'],
+  dinner: ['Rice / Roti', 'Dal', 'Vegetables', 'Chicken / Eggs / Paneer / Soy', 'Curd']
+};
+
+const DEFAULT_PROTEIN_FOODS = [
+  { id: 'pf_eggs', name: 'Eggs', icon: '🥚', unit: 'count', defaultQty: 2 },
+  { id: 'pf_milk', name: 'Milk', icon: '🥛', unit: 'ml', defaultQty: 250 },
+  { id: 'pf_curd', name: 'Curd', icon: '🥣', unit: 'serving', defaultQty: 1 },
+  { id: 'pf_chicken', name: 'Chicken', icon: '🍗', unit: 'g', defaultQty: 150 },
+  { id: 'pf_dal', name: 'Dal', icon: '🫘', unit: 'serving', defaultQty: 1 },
+  { id: 'pf_soy', name: 'Soy chunks', icon: '🫘', unit: 'g', defaultQty: 40 },
+  { id: 'pf_peanuts', name: 'Peanuts', icon: '🥜', unit: 'g', defaultQty: 30 },
+  { id: 'pf_paneer', name: 'Paneer', icon: '🧀', unit: 'g', defaultQty: 100 },
+  { id: 'pf_fish', name: 'Fish (optional)', icon: '🐟', unit: 'g', defaultQty: 120 }
+];
+
 const DEFAULT_ROUTINE = [
-  { id: 'r1', time: '06:30', label: 'Wake up' },
-  { id: 'r2', time: '06:40–07:10', label: 'Home Workout' },
-  { id: 'r3', time: '07:10–07:30', label: 'Shower + skincare/hair care' },
-  { id: 'r4', time: '07:30–08:00', label: 'Breakfast' },
-  { id: 'r5', time: '08:00–08:20', label: 'Pack food + college bag' },
-  { id: 'r6', time: '08:20–08:55', label: 'Commute (Kaggalipura → DSATM)' },
-  { id: 'r7', time: '09:30–16:30', label: 'DSATM College Classes' },
-  { id: 'r8', time: '16:30–17:15', label: 'Return Home (DSATM → Kaggalipura)' },
-  { id: 'r9', time: '17:30–19:00', label: 'Evening Study & Class Revision' },
-  { id: 'r10', time: '19:00–20:00', label: 'Evening Cooking' },
-  { id: 'r11', time: '20:00–21:00', label: 'Dinner + skincare' },
-  { id: 'r12', time: '22:30', label: 'Prepare for tomorrow' },
-  { id: 'r13', time: '23:00', label: 'Sleep' }
+  { id: 'r1', time: '06:30 AM', label: 'Wake up' },
+  { id: 'r2', time: '06:40 AM', label: 'Morning Water' },
+  { id: 'r3', time: '06:45–07:15 AM', label: 'Home Workout' },
+  { id: 'r4', time: '07:10 AM', label: '3-Minute Posture Routine' },
+  { id: 'r5', time: '07:15–07:30 AM', label: 'Shower' },
+  { id: 'r6', time: '07:30 AM', label: 'Morning Skin Care' },
+  { id: 'r7', time: '07:45 AM', label: 'Breakfast' },
+  { id: 'r8', time: '08:20 AM', label: 'Leave for College (Kaggalipura → DSATM)' },
+  { id: 'r9', time: '09:30 AM–04:00 PM', label: 'DSATM College Classes' },
+  { id: 'r10', time: '04:30–05:30 PM', label: 'Evening Snack + Water' },
+  { id: 'r11', time: '05:30–07:00 PM', label: 'Study & Class Revision' },
+  { id: 'r12', time: '07:00 PM', label: 'Cook Dinner' },
+  { id: 'r13', time: '07:30–08:30 PM', label: 'Dinner' },
+  { id: 'r14', time: '09:30 PM', label: 'Night Skin Care' },
+  { id: 'r15', time: '10:30 PM', label: 'Prepare for Tomorrow' },
+  { id: 'r16', time: '11:00 PM', label: 'Sleep (7–9 Hours)' }
 ];
 
 const DEFAULT_STATE = {
-  version: 1,
+  version: 2,
   profile: {
     name: 'Nandan',
     challengeType: '30', // '7' | '14' | '30' | '60' | '90' | 'custom' | 'unlimited'
@@ -63,6 +105,7 @@ const DEFAULT_STATE = {
     startDate: new Date().toISOString().split('T')[0],
     theme: 'dark' // 'light' | 'dark'
   },
+  scheduleTimes: DEFAULT_SCHEDULE_TIMES,
   targets: {
     waterTargetL: 3.0,
     proteinTargetG: 70,
@@ -92,12 +135,14 @@ const DEFAULT_STATE = {
     { id: 'cook_2', name: 'Lunch prepared' },
     { id: 'cook_3', name: 'Dinner prepared' }
   ],
+  foodOptions: DEFAULT_FOOD_OPTIONS,
+  proteinFoodsList: DEFAULT_PROTEIN_FOODS,
   timetable: DEFAULT_TIMETABLE,
   dailyRoutine: DEFAULT_ROUTINE,
   reminders: {
     wakeUp: { enabled: true, time: '06:30' },
-    workout: { enabled: true, time: '06:40' },
-    meals: { enabled: true, time: '07:30' },
+    workout: { enabled: true, time: '06:45' },
+    meals: { enabled: true, time: '07:45' },
     study: { enabled: true, time: '17:30' },
     skincare: { enabled: true, time: '21:30' },
     sleep: { enabled: true, time: '22:45' }
@@ -128,11 +173,14 @@ class StateManager {
   migrateAndMerge(saved) {
     const merged = { ...DEFAULT_STATE, ...saved };
     merged.profile = { ...DEFAULT_STATE.profile, ...(saved.profile || {}) };
+    merged.scheduleTimes = { ...DEFAULT_SCHEDULE_TIMES, ...(saved.scheduleTimes || {}) };
     merged.targets = { ...DEFAULT_STATE.targets, ...(saved.targets || {}) };
     merged.travel = { ...DEFAULT_STATE.travel, ...(saved.travel || {}) };
     merged.hairCareSchedule = { ...DEFAULT_STATE.hairCareSchedule, ...(saved.hairCareSchedule || {}) };
     merged.skincareProducts = saved.skincareProducts || DEFAULT_STATE.skincareProducts;
     merged.cookingTasks = saved.cookingTasks || DEFAULT_STATE.cookingTasks;
+    merged.foodOptions = { ...DEFAULT_FOOD_OPTIONS, ...(saved.foodOptions || {}) };
+    merged.proteinFoodsList = saved.proteinFoodsList || DEFAULT_PROTEIN_FOODS;
     merged.timetable = saved.timetable || DEFAULT_STATE.timetable;
     merged.dailyRoutine = saved.dailyRoutine || DEFAULT_STATE.dailyRoutine;
     merged.reminders = { ...DEFAULT_STATE.reminders, ...(saved.reminders || {}) };
@@ -195,6 +243,15 @@ class StateManager {
       studyCompletedMin: 0,
       workoutCompleted: false,
       tasks: {}, // taskId -> 'DONE' | 'NOT_DONE' | 'PENDING'
+      breakfastItems: [],
+      lunchItems: [],
+      snackItems: [],
+      dinnerItems: [],
+      proteinFoodsEaten: {}, // { [pf_id]: { eaten: boolean, qty: number/string } }
+      skinMorningSteps: { wash: false, moisturizer: false, sunscreen: false },
+      skinNightSteps: { wash: false, moisturizer: false },
+      hairSteps: { morningComb: false, morningPullAvoid: false, nightClean: false, nightWetAvoid: false, shampoo: false, conditioner: false },
+      cookingDone: { breakfast: false, lunch: false, dinner: false },
       notes: '',
       saved: false,
       updatedAt: new Date().toISOString()
@@ -233,6 +290,11 @@ class StateManager {
 
   updateProfile(updates) {
     this.state.profile = { ...this.state.profile, ...updates };
+    this.save();
+  }
+
+  updateScheduleTimes(updates) {
+    this.state.scheduleTimes = { ...this.state.scheduleTimes, ...updates };
     this.save();
   }
 
@@ -276,6 +338,11 @@ class StateManager {
     this.save();
   }
 
+  setProteinFoodsList(list) {
+    this.state.proteinFoodsList = list;
+    this.save();
+  }
+
   // Restore imported data
   restoreData(importedData) {
     if (!importedData || typeof importedData !== 'object') {
@@ -299,5 +366,5 @@ if (typeof window !== 'undefined') {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { StateManager, DEFAULT_STATE, DEFAULT_TIMETABLE, DEFAULT_ROUTINE };
+  module.exports = { StateManager, DEFAULT_STATE, DEFAULT_TIMETABLE, DEFAULT_ROUTINE, DEFAULT_SCHEDULE_TIMES, DEFAULT_FOOD_OPTIONS, DEFAULT_PROTEIN_FOODS };
 }

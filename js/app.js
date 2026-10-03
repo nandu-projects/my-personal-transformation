@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let workoutRunner = new WorkoutRunner(() => {
     // When workout finishes
     const activeDate = stateManager.getState().activeDate;
-    stateManager.setTaskStatus(activeDate, 'workout_completed', 'DONE');
+    stateManager.setTaskStatus(activeDate, 'task_workout', 'DONE');
     closeModal('modalWorkout');
     showToast('🎉 Workout Completed! Marked as DONE.');
     renderAll();
@@ -49,31 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const homeStatNotCompleted = document.getElementById('homeStatNotCompleted');
   const homeStatRemaining = document.getElementById('homeStatRemaining');
 
-  // Sleep
-  const inputSleepHours = document.getElementById('inputSleepHours');
-  const lblSleepTarget = document.getElementById('lblSleepTarget');
-
-  // Water
-  const lblWaterConsumed = document.getElementById('lblWaterConsumed');
-  const lblWaterTarget = document.getElementById('lblWaterTarget');
-
-  // Nutrition
-  const inputTodayWeight = document.getElementById('inputTodayWeight');
-  const inputProteinConsumed = document.getElementById('inputProteinConsumed');
-  const lblProteinTarget = document.getElementById('lblProteinTarget');
-
-  // Study
-  const inputStudyMinutes = document.getElementById('inputStudyMinutes');
-  const lblStudyTarget = document.getElementById('lblStudyTarget');
-  const btnStudyTimerToggle = document.getElementById('btnStudyTimerToggle');
-  const lblStudyTimerStatus = document.getElementById('lblStudyTimerStatus');
-  const lblStudyTimerCountdown = document.getElementById('lblStudyTimerCountdown');
-
-  // Travel
-  const lblTravelLeave = document.getElementById('lblTravelLeave');
-  const lblTravelArrival = document.getElementById('lblTravelArrival');
-  const lblTravelReturn = document.getElementById('lblTravelReturn');
-
   // Result Card
   const resultCompletedVal = document.getElementById('resultCompletedVal');
   const resultNotCompletedVal = document.getElementById('resultNotCompletedVal');
@@ -106,16 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (m) m.classList.remove('active');
   }
 
-  // Calculate arrival time string: startTime (HH:MM) + minutes
-  function calculateArrivalTime(startTime, travelMin) {
-    if (!startTime) return '08:50';
-    const parts = startTime.split(':').map(Number);
-    let totalMin = parts[0] * 60 + parts[1] + (parseInt(travelMin, 10) || 30);
-    const h = Math.floor(totalMin / 60) % 24;
-    const m = totalMin % 60;
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-  }
-
   // 4. Rendering Functions
   function renderAll() {
     const state = stateManager.getState();
@@ -142,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Render Home Screen
+    // Render Home Screen Sections
     renderHomeScreen(state, record, activeDate, dayName);
 
     // Render History Screen
@@ -156,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderHomeScreen(state, record, activeDate, dayName) {
+    const times = state.scheduleTimes || {};
     const stats = taskManager.calculateStats(activeDate);
 
     // Progress Bar & Hero Stats
@@ -166,44 +132,52 @@ document.addEventListener('DOMContentLoaded', () => {
     homeStatNotCompleted.textContent = stats.notCompleted;
     homeStatRemaining.textContent = stats.remaining;
 
-    // Sleep Section
-    inputSleepHours.value = record.sleepHours !== undefined ? record.sleepHours : 8;
-    lblSleepTarget.textContent = `${state.targets.sleepTargetHours} hours`;
+    // --- 1. 🌅 MORNING SECTION ---
+    document.getElementById('lblTimeMorningSkin').textContent = times.morningSkin || '07:30 AM';
+    document.getElementById('lblTimeBreakfast').textContent = times.breakfast || '07:45 AM';
 
-    // Water Section
-    lblWaterConsumed.textContent = (record.waterConsumedL || 0).toFixed(2);
-    lblWaterTarget.textContent = state.targets.waterTargetL.toFixed(1);
+    // Morning Skincare Steps checkboxes
+    const skinMorning = record.skinMorningSteps || {};
+    document.getElementById('cbSkinMorningWash').checked = !!skinMorning.wash;
+    document.getElementById('cbSkinMorningMoist').checked = !!skinMorning.moisturizer;
+    document.getElementById('cbSkinMorningSun').checked = !!skinMorning.sunscreen;
+    document.getElementById('lblSkinStepMorningWash').classList.toggle('checked', !!skinMorning.wash);
+    document.getElementById('lblSkinStepMorningMoist').classList.toggle('checked', !!skinMorning.moisturizer);
+    document.getElementById('lblSkinStepMorningSun').classList.toggle('checked', !!skinMorning.sunscreen);
 
-    // Workout Summary
-    const workoutInfo = WORKOUT_SCHEDULE[dayName] || WORKOUT_SCHEDULE.Monday;
-    const summaryElem = document.getElementById('lblWorkoutSummary');
-    if (summaryElem) {
-      summaryElem.textContent = `${dayName.toUpperCase()}: ${workoutInfo.title} (${workoutInfo.duration}) - ${workoutInfo.description}`;
-    }
+    // Breakfast Foods Checklist
+    renderFoodGrid(
+      'breakfastFoodsGrid',
+      state.foodOptions?.breakfast || [],
+      record.breakfastItems || [],
+      (item, isChecked) => {
+        const cur = record.breakfastItems || [];
+        const updated = isChecked ? [...cur, item] : cur.filter(x => x !== item);
+        stateManager.updateRecord(activeDate, { breakfastItems: updated });
+        if (updated.length > 0 && record.tasks?.task_breakfast !== 'DONE') {
+          stateManager.setTaskStatus(activeDate, 'task_breakfast', 'DONE');
+        }
+        renderAll();
+      }
+    );
 
-    // Nutrition Section
-    inputTodayWeight.value = record.weightKg || '';
-    inputProteinConsumed.value = record.proteinConsumedG || 0;
-    lblProteinTarget.textContent = state.targets.proteinTargetG;
+    // --- 2. 🎓 COLLEGE SECTION ---
+    document.getElementById('lblTravelLeave').textContent = state.travel?.leaveHomeTime || times.leaveCollege || '08:20 AM';
+    document.getElementById('lblTravelReturn').textContent = state.travel?.returnHomeTime || '04:30 PM';
+    
+    // Arrival calc
+    const travelMin = state.travel?.expectedTravelMin || 30;
+    document.getElementById('lblTravelArrival').textContent = `~${travelMin} min trip`;
 
-    // Haircare notice
-    const hairNotice = document.getElementById('lblHairCareNotice');
-    if (hairNotice) {
-      const isWash = state.hairCareSchedule.shampooDays.includes(dayName);
-      hairNotice.textContent = isWash 
-        ? `Today is a scheduled wash day (${dayName}). Shampoo & deep rinse.`
-        : `Non-wash day. Gentle brushing and scalp care. (Wash days: ${state.hairCareSchedule.shampooDays.join(', ')})`;
-    }
-
-    // College (DSATM) Today's Classes preview
+    // Today's classes
     const todayClasses = timetableManager.getClassesForDay(dayName);
     const classesContainer = document.getElementById('homeTodayClassesList');
     if (classesContainer) {
       if (todayClasses.length === 0) {
-        classesContainer.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted);">No classes scheduled for ${dayName}.</div>`;
+        classesContainer.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); padding: 4px 0;">No scheduled classes for ${dayName} (Self-study / Project work).</div>`;
       } else {
         classesContainer.innerHTML = todayClasses.map(c => `
-          <div style="background: var(--bg-input); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; font-size: 0.82rem;">
+          <div style="background: var(--bg-input); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; font-size: 0.82rem;">
             <div>
               <strong style="color: var(--color-brand);">${c.startTime} – ${c.endTime}</strong>: 
               <span style="color: var(--text-primary); font-weight: 600;">${c.subject}</span>
@@ -214,16 +188,101 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Travel Section
-    lblTravelLeave.textContent = state.travel.leaveHomeTime || '08:20';
-    lblTravelArrival.textContent = calculateArrivalTime(state.travel.leaveHomeTime, state.travel.expectedTravelMin);
-    lblTravelReturn.textContent = state.travel.returnHomeTime || '16:30';
+    // --- 3. 🍌 AFTER COLLEGE & STUDY SECTION ---
+    document.getElementById('lblTimeSnack').textContent = times.eveningSnack || '04:30–05:30 PM';
+    document.getElementById('lblTimeStudy').textContent = times.study || '05:30–07:00 PM';
 
-    // Study Section
-    inputStudyMinutes.value = record.studyCompletedMin || 0;
-    lblStudyTarget.textContent = state.targets.studyTargetMin;
+    // Evening Snack Grid
+    renderFoodGrid(
+      'snackFoodsGrid',
+      state.foodOptions?.snack || [],
+      record.snackItems || [],
+      (item, isChecked) => {
+        const cur = record.snackItems || [];
+        const updated = isChecked ? [...cur, item] : cur.filter(x => x !== item);
+        stateManager.updateRecord(activeDate, { snackItems: updated });
+        if (updated.length > 0 && record.tasks?.task_snack !== 'DONE') {
+          stateManager.setTaskStatus(activeDate, 'task_snack', 'DONE');
+        }
+        renderAll();
+      }
+    );
 
-    // Daily Timeline
+    // Water Tracker
+    const waterConsumed = record.waterConsumedL || 0;
+    const waterTarget = state.targets?.waterTargetL || 3.0;
+    const waterPct = Math.min(100, Math.round((waterConsumed / waterTarget) * 100));
+    document.getElementById('lblWaterConsumed').textContent = `${waterConsumed.toFixed(2)} L`;
+    document.getElementById('lblWaterTarget').textContent = waterTarget.toFixed(1);
+    document.getElementById('waterProgressFill').style.width = `${waterPct}%`;
+    document.getElementById('lblWaterPercent').textContent = `${waterPct}%`;
+
+    const waterBadge = document.getElementById('lblWaterStatusBadge');
+    if (waterConsumed >= waterTarget) {
+      waterBadge.innerHTML = '✅ Water Target Completed!';
+      waterBadge.style.color = 'var(--color-success)';
+      // Auto-mark task
+      if (record.tasks?.task_water_target !== 'DONE') {
+        stateManager.setTaskStatus(activeDate, 'task_water_target', 'DONE');
+      }
+    } else {
+      waterBadge.innerHTML = `Target: ${waterTarget.toFixed(1)} L`;
+      waterBadge.style.color = 'var(--text-secondary)';
+    }
+
+    // Study Widget
+    document.getElementById('lblStudyTarget').textContent = state.targets?.studyTargetMin || 90;
+    document.getElementById('inputStudyMinutes').value = record.studyCompletedMin || 0;
+
+    // --- 4. 🍗 NUTRITION & DINNER SECTION ---
+    document.getElementById('lblTimeDinner').textContent = times.dinner || '07:30–08:30 PM';
+    document.getElementById('inputTodayWeight').value = record.weightKg || '';
+    document.getElementById('inputProteinConsumed').value = record.proteinConsumedG || 0;
+    document.getElementById('lblProteinTarget').textContent = state.targets?.proteinTargetG || 70;
+
+    // Cooking checkboxes
+    const cook = record.cookingDone || {};
+    document.getElementById('cbCookBfast').checked = !!cook.breakfast;
+    document.getElementById('cbCookLunch').checked = !!cook.lunch;
+    document.getElementById('cbCookDinner').checked = !!cook.dinner;
+    document.getElementById('lblCookBfast').classList.toggle('checked', !!cook.breakfast);
+    document.getElementById('lblCookLunch').classList.toggle('checked', !!cook.lunch);
+    document.getElementById('lblCookDinner').classList.toggle('checked', !!cook.dinner);
+
+    // Dinner Foods Grid
+    renderFoodGrid(
+      'dinnerFoodsGrid',
+      state.foodOptions?.dinner || [],
+      record.dinnerItems || [],
+      (item, isChecked) => {
+        const cur = record.dinnerItems || [];
+        const updated = isChecked ? [...cur, item] : cur.filter(x => x !== item);
+        stateManager.updateRecord(activeDate, { dinnerItems: updated });
+        if (updated.length > 0 && record.tasks?.task_dinner !== 'DONE') {
+          stateManager.setTaskStatus(activeDate, 'task_dinner', 'DONE');
+        }
+        renderAll();
+      }
+    );
+
+    // Protein Foods Checklist & Quantities
+    renderProteinFoodsList(state, record, activeDate);
+
+    // --- 5. 💇 HAIR CARE SECTION ---
+    renderHairCareSection(state, record, activeDate, dayName);
+
+    // --- 6. 🌙 NIGHT SECTION ---
+    document.getElementById('lblTimeNightSkin').textContent = times.nightSkin || '09:30 PM';
+    const skinNight = record.skinNightSteps || {};
+    document.getElementById('cbSkinNightWash').checked = !!skinNight.wash;
+    document.getElementById('cbSkinNightMoist').checked = !!skinNight.moisturizer;
+    document.getElementById('lblSkinStepNightWash').classList.toggle('checked', !!skinNight.wash);
+    document.getElementById('lblSkinStepNightMoist').classList.toggle('checked', !!skinNight.moisturizer);
+
+    document.getElementById('inputSleepHours').value = record.sleepHours !== undefined ? record.sleepHours : 8;
+    document.getElementById('lblSleepTarget').textContent = `${state.targets?.sleepTargetHours || '7–9'} hours`;
+
+    // --- 7. Full Daily Timeline ---
     const timelineContainer = document.getElementById('homeTimelineList');
     if (timelineContainer) {
       const timelineItems = routineManager.getTodayTimeline(activeDate);
@@ -235,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
       `).join('');
     }
 
-    // Categorized Tasks Rendering
+    // --- Core Tasks Checklist in all sections ---
     const categories = taskManager.getTasksForDate(activeDate);
     const userTasks = record.tasks || {};
 
@@ -257,6 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="task-info">
               <span class="task-status-symbol">${symbol}</span>
               <div class="task-text">
+                ${t.time ? `<span class="task-time-badge">${t.time}</span>` : ''}
                 <div class="task-title">${t.title}</div>
                 ${t.hint ? `<div class="task-hint">${t.hint}</div>` : ''}
               </div>
@@ -288,6 +348,191 @@ document.addEventListener('DOMContentLoaded', () => {
       btnSaveDay.textContent = '💾 SAVE DAY';
       btnSaveDay.style.background = 'var(--color-brand)';
       btnSaveDay.style.border = 'none';
+    }
+  }
+
+  // Food Grid Helper
+  function renderFoodGrid(containerId, options, selectedItems, onToggle) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = options.map((opt, idx) => {
+      const isSelected = selectedItems.includes(opt);
+      const selClass = isSelected ? 'selected' : '';
+      const checkedAttr = isSelected ? 'checked' : '';
+      return `
+        <label class="food-chip-item ${selClass}" data-item="${opt}">
+          <input type="checkbox" ${checkedAttr} data-item="${opt}">
+          <span>${opt}</span>
+        </label>
+      `;
+    }).join('');
+
+    // Attach click listener
+    container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.onchange = (e) => {
+        const item = e.target.dataset.item;
+        onToggle(item, e.target.checked);
+      };
+    });
+  }
+
+  // Protein Foods Checklist Helper
+  function renderProteinFoodsList(state, record, activeDate) {
+    const container = document.getElementById('proteinFoodsListContainer');
+    if (!container) return;
+
+    const foods = state.proteinFoodsList || [];
+    const eatenMap = record.proteinFoodsEaten || {};
+
+    container.innerHTML = foods.map(f => {
+      const entry = eatenMap[f.id] || { eaten: false, qty: f.defaultQty };
+      const isEaten = entry.eaten;
+      const rowClass = isEaten ? 'eaten' : '';
+      const checkedAttr = isEaten ? 'checked' : '';
+
+      return `
+        <div class="protein-food-row ${rowClass}" data-id="${f.id}">
+          <label class="protein-food-info">
+            <input type="checkbox" ${checkedAttr} class="cb-protein-food" data-id="${f.id}">
+            <span>${f.icon || '🥚'} ${f.name}</span>
+          </label>
+          <div class="protein-qty-wrap">
+            <span>Qty:</span>
+            <input type="text" class="protein-qty-input" data-id="${f.id}" value="${entry.qty !== undefined ? entry.qty : f.defaultQty}">
+            <span>${f.unit}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Checkbox and quantity listeners
+    container.querySelectorAll('.cb-protein-food').forEach(cb => {
+      cb.onchange = (e) => {
+        const id = e.target.dataset.id;
+        const curMap = record.proteinFoodsEaten || {};
+        const curEntry = curMap[id] || {};
+        curMap[id] = { ...curEntry, eaten: e.target.checked };
+        stateManager.updateRecord(activeDate, { proteinFoodsEaten: curMap });
+
+        // Auto-check protein food task if any eaten
+        const hasAnyEaten = Object.values(curMap).some(v => v.eaten);
+        if (hasAnyEaten && record.tasks?.task_protein_food !== 'DONE') {
+          stateManager.setTaskStatus(activeDate, 'task_protein_food', 'DONE');
+        }
+        renderAll();
+      };
+    });
+
+    container.querySelectorAll('.protein-qty-input').forEach(inp => {
+      inp.onchange = (e) => {
+        const id = e.target.dataset.id;
+        const curMap = record.proteinFoodsEaten || {};
+        const curEntry = curMap[id] || {};
+        curMap[id] = { ...curEntry, qty: e.target.value.trim() };
+        stateManager.updateRecord(activeDate, { proteinFoodsEaten: curMap });
+      };
+    });
+  }
+
+  // Hair Care Section Helper
+  function renderHairCareSection(state, record, activeDate, dayName) {
+    const container = document.getElementById('hairCareContentContainer');
+    const notice = document.getElementById('lblHairCareNotice');
+    if (!container) return;
+
+    const shampooDays = state.hairCareSchedule?.shampooDays || ['Sunday', 'Thursday'];
+    const isWashDay = shampooDays.includes(dayName);
+    const steps = record.hairSteps || {};
+
+    if (isWashDay) {
+      if (notice) notice.textContent = `Today is a scheduled wash day (${dayName}). Wash gently & hydrate.`;
+      container.innerHTML = `
+        <div class="substep-card">
+          <div class="substep-header">
+            <strong style="color: var(--color-brand); font-size: 0.88rem;">🚿 Hair Wash Routine</strong>
+            <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 700;">Scheduled Day</span>
+          </div>
+          <div class="substep-instruction">
+            "Apply shampoo mainly to the scalp. Do not aggressively rub the hair."<br>
+            "Use conditioner mainly on the hair lengths/ends."
+          </div>
+          <div class="substep-list">
+            <label class="substep-item ${steps.shampoo ? 'checked' : ''}">
+              <span>1. Shampoo scalp gently</span>
+              <input type="checkbox" id="cbHairShampoo" ${steps.shampoo ? 'checked' : ''}>
+            </label>
+            <label class="substep-item ${steps.rinse1 ? 'checked' : ''}">
+              <span>2. Rinse properly</span>
+              <input type="checkbox" id="cbHairRinse1" ${steps.rinse1 ? 'checked' : ''}>
+            </label>
+            <label class="substep-item ${steps.conditioner ? 'checked' : ''}">
+              <span>3. Conditioner on hair lengths</span>
+              <input type="checkbox" id="cbHairConditioner" ${steps.conditioner ? 'checked' : ''}>
+            </label>
+            <label class="substep-item ${steps.rinse2 ? 'checked' : ''}">
+              <span>4. Final gentle rinse</span>
+              <input type="checkbox" id="cbHairRinse2" ${steps.rinse2 ? 'checked' : ''}>
+            </label>
+          </div>
+        </div>
+      `;
+
+      // Hair Wash Checkboxes listeners
+      ['cbHairShampoo', 'cbHairRinse1', 'cbHairConditioner', 'cbHairRinse2'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.onchange = (e) => {
+            const key = id.replace('cbHair', '').toLowerCase();
+            const curSteps = record.hairSteps || {};
+            curSteps[key] = e.target.checked;
+            stateManager.updateRecord(activeDate, { hairSteps: curSteps });
+            if (curSteps.shampoo && curSteps.conditioner && record.tasks?.task_hair_care !== 'DONE') {
+              stateManager.setTaskStatus(activeDate, 'task_hair_care', 'DONE');
+            }
+            renderAll();
+          };
+        }
+      });
+    } else {
+      if (notice) notice.textContent = `Non-wash day (${dayName}). Wash days: ${shampooDays.join(', ')}.`;
+      container.innerHTML = `
+        <div class="substep-card">
+          <div class="substep-header">
+            <strong style="color: var(--text-primary); font-size: 0.85rem;">💇 Daily Gentle Care (Non-Wash Day)</strong>
+            <span style="font-size: 0.72rem; color: var(--color-brand); font-weight: 700;">Simple</span>
+          </div>
+          <div class="substep-instruction">
+            "Keep hair/scalp clean and avoid unnecessary products. Do not force daily shampoo or oil."
+          </div>
+          <div class="substep-list">
+            <label class="substep-item ${steps.morningComb ? 'checked' : ''}">
+              <span>Morning: Comb gently & avoid pulling</span>
+              <input type="checkbox" id="cbHairComb" ${steps.morningComb ? 'checked' : ''}>
+            </label>
+            <label class="substep-item ${steps.nightClean ? 'checked' : ''}">
+              <span>Night: Keep scalp clean & avoid sleeping with wet hair</span>
+              <input type="checkbox" id="cbHairNight" ${steps.nightClean ? 'checked' : ''}>
+            </label>
+          </div>
+        </div>
+      `;
+
+      ['cbHairComb', 'cbHairNight'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.onchange = (e) => {
+            const key = id === 'cbHairComb' ? 'morningComb' : 'nightClean';
+            const curSteps = record.hairSteps || {};
+            curSteps[key] = e.target.checked;
+            stateManager.updateRecord(activeDate, { hairSteps: curSteps });
+            if (curSteps.morningComb && record.tasks?.task_hair_care !== 'DONE') {
+              stateManager.setTaskStatus(activeDate, 'task_hair_care', 'DONE');
+            }
+            renderAll();
+          };
+        }
+      });
     }
   }
 
@@ -372,6 +617,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderSettingsScreen(state) {
+    const times = state.scheduleTimes || {};
+
     document.getElementById('settingName').value = state.profile.name || 'Nandan';
     document.getElementById('settingChallengeDays').value = state.profile.challengeType;
     if (state.profile.challengeType === 'custom') {
@@ -381,21 +628,41 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('rowCustomDays').style.display = 'none';
     }
 
-    document.getElementById('settingWaterTarget').value = state.targets.waterTargetL;
-    document.getElementById('settingProteinTarget').value = state.targets.proteinTargetG;
-    document.getElementById('settingStudyTarget').value = state.targets.studyTargetMin;
-    document.getElementById('settingSleepTarget').value = state.targets.sleepTargetHours;
+    // Schedule Timings inputs
+    document.getElementById('timeSettingWake').value = times.wakeUp || '06:30 AM';
+    document.getElementById('timeSettingWater').value = times.morningWater || '06:40 AM';
+    document.getElementById('timeSettingWorkout').value = times.workout || '06:45–07:15 AM';
+    document.getElementById('timeSettingPosture').value = times.posture || '07:10 AM';
+    document.getElementById('timeSettingShower').value = times.shower || '07:15–07:30 AM';
+    document.getElementById('timeSettingMorningSkin').value = times.morningSkin || '07:30 AM';
+    document.getElementById('timeSettingBreakfast').value = times.breakfast || '07:45 AM';
+    document.getElementById('timeSettingLeave').value = times.leaveCollege || '08:20 AM';
+    document.getElementById('timeSettingSnack').value = times.eveningSnack || '04:30–05:30 PM';
+    document.getElementById('timeSettingStudy').value = times.study || '05:30–07:00 PM';
+    document.getElementById('timeSettingCookDinner').value = times.cookDinner || '07:00 PM';
+    document.getElementById('timeSettingDinner').value = times.dinner || '07:30–08:30 PM';
+    document.getElementById('timeSettingNightSkin').value = times.nightSkin || '09:30 PM';
+    document.getElementById('timeSettingPrep').value = times.prepTomorrow || '10:30 PM';
+    document.getElementById('timeSettingSleep').value = times.sleep || '11:00 PM';
 
-    document.getElementById('settingLeaveTime').value = state.travel.leaveHomeTime || '08:20';
-    document.getElementById('settingTravelMin').value = state.travel.expectedTravelMin || 30;
-    document.getElementById('settingReturnTime').value = state.travel.returnHomeTime || '16:30';
+    // Daily Targets
+    document.getElementById('settingWaterTarget').value = state.targets?.waterTargetL || 3.0;
+    document.getElementById('settingProteinTarget').value = state.targets?.proteinTargetG || 70;
+    document.getElementById('settingStudyTarget').value = state.targets?.studyTargetMin || 90;
+    document.getElementById('settingSleepTarget').value = state.targets?.sleepTargetHours || '7–9';
+
+    // Commute
+    document.getElementById('settingLeaveTime').value = state.travel?.leaveHomeTime || '08:20 AM';
+    document.getElementById('settingTravelMin').value = state.travel?.expectedTravelMin || 30;
+    document.getElementById('settingReturnTime').value = state.travel?.returnHomeTime || '04:30 PM';
 
     // Hair Shampoo Days Checkboxes
     const hairContainer = document.getElementById('settingsHairDayChecks');
     if (hairContainer) {
       const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const currentShampoo = state.hairCareSchedule?.shampooDays || ['Sunday', 'Thursday'];
       hairContainer.innerHTML = days.map(d => {
-        const checked = state.hairCareSchedule.shampooDays.includes(d) ? 'checked' : '';
+        const checked = currentShampoo.includes(d) ? 'checked' : '';
         return `
           <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
             <input type="checkbox" class="hair-day-cb" value="${d}" ${checked}>
@@ -429,7 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
         skincare: 'Skincare reminder',
         sleep: 'Sleep preparation reminder'
       };
-      remindersContainer.innerHTML = Object.keys(state.reminders).map(key => {
+      remindersContainer.innerHTML = Object.keys(state.reminders || {}).map(key => {
         const rem = state.reminders[key];
         const isChecked = rem.enabled ? 'checked' : '';
         return `
@@ -438,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <input type="checkbox" class="reminder-toggle" data-key="${key}" ${isChecked}>
               <span>${labels[key] || key}</span>
             </label>
-            <input type="time" class="form-control reminder-time" data-key="${key}" value="${rem.time || '08:00'}" style="width: 100px;">
+            <input type="text" class="form-control reminder-time" data-key="${key}" value="${rem.time || '08:00 AM'}" style="width: 110px;">
           </div>
         `;
       }).join('');
@@ -446,6 +713,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 5. Global Event Handlers
+
+  // Expandable / Collapsible Section Toggle
+  document.addEventListener('click', (e) => {
+    const head = e.target.closest('.section-head.collapsible');
+    if (!head) return;
+    const card = head.closest('.section-card');
+    if (card) {
+      card.classList.toggle('collapsed');
+    }
+  });
+
   // Bottom Navigation
   navItems.forEach(item => {
     item.addEventListener('click', () => {
@@ -510,7 +788,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeDate = stateManager.getState().activeDate;
     const currentRec = stateManager.getRecord(activeDate);
 
-    // If already active, toggling can reset to PENDING, otherwise set new status
     const currentStatus = currentRec.tasks ? currentRec.tasks[taskId] : 'PENDING';
     const newStatus = currentStatus === action ? 'PENDING' : action;
 
@@ -518,16 +795,86 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAll();
   });
 
-  // Sleep hours input
-  inputSleepHours.addEventListener('change', () => {
-    const val = parseFloat(inputSleepHours.value) || 0;
-    const activeDate = stateManager.getState().activeDate;
-    stateManager.updateRecord(activeDate, { sleepHours: val });
-    if (val >= 7) {
-      stateManager.setTaskStatus(activeDate, 'sleep_hours', 'DONE');
+  // Morning Skincare Checkboxes
+  ['cbSkinMorningWash', 'cbSkinMorningMoist', 'cbSkinMorningSun'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.onchange = (e) => {
+        const activeDate = stateManager.getState().activeDate;
+        const rec = stateManager.getRecord(activeDate);
+        const steps = rec.skinMorningSteps || {};
+        if (id === 'cbSkinMorningWash') steps.wash = e.target.checked;
+        if (id === 'cbSkinMorningMoist') steps.moisturizer = e.target.checked;
+        if (id === 'cbSkinMorningSun') steps.sunscreen = e.target.checked;
+        stateManager.updateRecord(activeDate, { skinMorningSteps: steps });
+
+        if (steps.wash && steps.moisturizer && steps.sunscreen && rec.tasks?.task_morning_skin !== 'DONE') {
+          stateManager.setTaskStatus(activeDate, 'task_morning_skin', 'DONE');
+        }
+        renderAll();
+      };
     }
+  });
+
+  // Night Skincare Checkboxes
+  ['cbSkinNightWash', 'cbSkinNightMoist'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.onchange = (e) => {
+        const activeDate = stateManager.getState().activeDate;
+        const rec = stateManager.getRecord(activeDate);
+        const steps = rec.skinNightSteps || {};
+        if (id === 'cbSkinNightWash') steps.wash = e.target.checked;
+        if (id === 'cbSkinNightMoist') steps.moisturizer = e.target.checked;
+        stateManager.updateRecord(activeDate, { skinNightSteps: steps });
+
+        if (steps.wash && steps.moisturizer && rec.tasks?.task_night_skin !== 'DONE') {
+          stateManager.setTaskStatus(activeDate, 'task_night_skin', 'DONE');
+        }
+        renderAll();
+      };
+    }
+  });
+
+  // Cooking Checkboxes
+  ['cbCookBfast', 'cbCookLunch', 'cbCookDinner'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.onchange = (e) => {
+        const activeDate = stateManager.getState().activeDate;
+        const rec = stateManager.getRecord(activeDate);
+        const cook = rec.cookingDone || {};
+        if (id === 'cbCookBfast') cook.breakfast = e.target.checked;
+        if (id === 'cbCookLunch') cook.lunch = e.target.checked;
+        if (id === 'cbCookDinner') cook.dinner = e.target.checked;
+        stateManager.updateRecord(activeDate, { cookingDone: cook });
+
+        if (cook.dinner && rec.tasks?.task_cook_dinner !== 'DONE') {
+          stateManager.setTaskStatus(activeDate, 'task_cook_dinner', 'DONE');
+        }
+        renderAll();
+      };
+    }
+  });
+
+  // Custom Breakfast Item Add
+  document.getElementById('btnAddCustomBreakfast').addEventListener('click', () => {
+    const inp = document.getElementById('inputCustomBreakfast');
+    const val = inp.value.trim();
+    if (!val) return;
+    const state = stateManager.getState();
+    const curOpts = state.foodOptions?.breakfast || [];
+    if (!curOpts.includes(val)) {
+      state.foodOptions.breakfast = [...curOpts, val];
+      stateManager.save();
+    }
+    const activeDate = state.activeDate;
+    const rec = stateManager.getRecord(activeDate);
+    const curItems = rec.breakfastItems || [];
+    stateManager.updateRecord(activeDate, { breakfastItems: [...curItems, val] });
+    inp.value = '';
     renderAll();
-    showToast(`Sleep logged: ${val} hours`);
+    showToast(`Added ${val} to breakfast`);
   });
 
   // Water Quick Buttons
@@ -538,9 +885,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const newTotal = Math.round(((currentRec.waterConsumedL || 0) + addedL) * 100) / 100;
     stateManager.updateRecord(activeDate, { waterConsumedL: newTotal });
 
-    const target = stateManager.getState().targets.waterTargetL;
+    const target = stateManager.getState().targets?.waterTargetL || 3.0;
     if (newTotal >= target) {
-      stateManager.setTaskStatus(activeDate, 'water_target', 'DONE');
+      stateManager.setTaskStatus(activeDate, 'task_water_target', 'DONE');
     }
     renderAll();
     showToast(`+${ml}ml water logged (${newTotal}L total)`);
@@ -552,12 +899,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnResetWater').addEventListener('click', () => {
     const activeDate = stateManager.getState().activeDate;
     stateManager.updateRecord(activeDate, { waterConsumedL: 0 });
-    stateManager.setTaskStatus(activeDate, 'water_target', 'PENDING');
+    stateManager.setTaskStatus(activeDate, 'task_water_target', 'PENDING');
     renderAll();
     showToast('Water reset to 0L');
   });
 
-  // Nutrition Quick Buttons & Inputs
+  // Protein Tracking Inputs & Buttons
   inputTodayWeight.addEventListener('change', () => {
     const val = parseFloat(inputTodayWeight.value) || '';
     const activeDate = stateManager.getState().activeDate;
@@ -571,9 +918,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const newTotal = (currentRec.proteinConsumedG || 0) + g;
     stateManager.updateRecord(activeDate, { proteinConsumedG: newTotal });
 
-    const target = stateManager.getState().targets.proteinTargetG;
+    const target = stateManager.getState().targets?.proteinTargetG || 70;
     if (newTotal >= target) {
-      stateManager.setTaskStatus(activeDate, 'nutri_protein', 'DONE');
+      stateManager.setTaskStatus(activeDate, 'task_protein_food', 'DONE');
     }
     renderAll();
     showToast(`+${g}g protein logged (${newTotal}g total)`);
@@ -585,7 +932,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnResetProtein').addEventListener('click', () => {
     const activeDate = stateManager.getState().activeDate;
     stateManager.updateRecord(activeDate, { proteinConsumedG: 0 });
-    stateManager.setTaskStatus(activeDate, 'nutri_protein', 'PENDING');
     renderAll();
     showToast('Protein reset to 0g');
   });
@@ -594,9 +940,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const val = parseInt(inputProteinConsumed.value, 10) || 0;
     const activeDate = stateManager.getState().activeDate;
     stateManager.updateRecord(activeDate, { proteinConsumedG: val });
-    const target = stateManager.getState().targets.proteinTargetG;
+    const target = stateManager.getState().targets?.proteinTargetG || 70;
     if (val >= target) {
-      stateManager.setTaskStatus(activeDate, 'nutri_protein', 'DONE');
+      stateManager.setTaskStatus(activeDate, 'task_protein_food', 'DONE');
     }
     renderAll();
   });
@@ -606,9 +952,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const val = parseInt(inputStudyMinutes.value, 10) || 0;
     const activeDate = stateManager.getState().activeDate;
     stateManager.updateRecord(activeDate, { studyCompletedMin: val });
-    const target = stateManager.getState().targets.studyTargetMin;
+    const target = stateManager.getState().targets?.studyTargetMin || 90;
     if (val >= target) {
-      stateManager.setTaskStatus(activeDate, 'study_revision', 'DONE');
+      stateManager.setTaskStatus(activeDate, 'task_study', 'DONE');
     }
     renderAll();
   });
@@ -618,9 +964,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentRec = stateManager.getRecord(activeDate);
     const newTotal = (currentRec.studyCompletedMin || 0) + min;
     stateManager.updateRecord(activeDate, { studyCompletedMin: newTotal });
-    const target = stateManager.getState().targets.studyTargetMin;
+    const target = stateManager.getState().targets?.studyTargetMin || 90;
     if (newTotal >= target) {
-      stateManager.setTaskStatus(activeDate, 'study_revision', 'DONE');
+      stateManager.setTaskStatus(activeDate, 'task_study', 'DONE');
     }
     renderAll();
     showToast(`+${min} mins study logged (${newTotal}m total)`);
@@ -660,6 +1006,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 1000);
       showToast('Study focus timer started!');
     }
+  });
+
+  // Sleep hours input
+  inputSleepHours.addEventListener('change', () => {
+    const val = parseFloat(inputSleepHours.value) || 0;
+    const activeDate = stateManager.getState().activeDate;
+    stateManager.updateRecord(activeDate, { sleepHours: val });
+    if (val >= 7) {
+      stateManager.setTaskStatus(activeDate, 'task_sleep', 'DONE');
+    }
+    renderAll();
+    showToast(`Sleep logged: ${val} hours`);
   });
 
   // Workout Runner Modal
@@ -723,7 +1081,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('btnDonePostureModal').addEventListener('click', () => {
     const activeDate = stateManager.getState().activeDate;
-    stateManager.setTaskStatus(activeDate, 'posture_stretch', 'DONE');
+    stateManager.setTaskStatus(activeDate, 'task_posture', 'DONE');
     closeModal('modalPosture');
     renderAll();
     showToast('Posture routine logged as DONE ✅');
@@ -802,7 +1160,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnSwitchToThisDay').onclick = () => {
       stateManager.setActiveDate(dateStr);
       closeModal('modalHistoryDetail');
-      // Switch to home nav
       document.querySelector('.bottom-nav [data-target="screenHome"]').click();
       renderAll();
       showToast(`Switched view to ${dateStr}`);
@@ -829,8 +1186,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('modalClassId').value = '';
     document.getElementById('modalClassDay').value = selectedTimetableDay;
     document.getElementById('modalClassSubject').value = '';
-    document.getElementById('modalClassStart').value = '09:30';
-    document.getElementById('modalClassEnd').value = '10:30';
+    document.getElementById('modalClassStart').value = '09:30 AM';
+    document.getElementById('modalClassEnd').value = '10:30 AM';
     document.getElementById('modalClassRoom').value = 'DSATM Room 201';
     openModal('modalClass');
   });
@@ -843,8 +1200,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const classId = document.getElementById('modalClassId').value;
     const day = document.getElementById('modalClassDay').value || selectedTimetableDay;
     const subject = document.getElementById('modalClassSubject').value.trim();
-    const startTime = document.getElementById('modalClassStart').value;
-    const endTime = document.getElementById('modalClassEnd').value;
+    const startTime = document.getElementById('modalClassStart').value.trim();
+    const endTime = document.getElementById('modalClassEnd').value.trim();
     const room = document.getElementById('modalClassRoom').value.trim();
 
     if (!subject) {
@@ -853,11 +1210,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (classId) {
-      // Edit
       timetableManager.updateClass(day, classId, { subject, startTime, endTime, room });
       showToast('Class updated successfully');
     } else {
-      // Add
       timetableManager.addClass(day, { subject, startTime, endTime, room });
       showToast('Class added to ' + day);
     }
@@ -926,6 +1281,38 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAll();
   });
 
+  // Routine Timings in Settings
+  const timingFields = [
+    { id: 'timeSettingWake', key: 'wakeUp' },
+    { id: 'timeSettingWater', key: 'morningWater' },
+    { id: 'timeSettingWorkout', key: 'workout' },
+    { id: 'timeSettingPosture', key: 'posture' },
+    { id: 'timeSettingShower', key: 'shower' },
+    { id: 'timeSettingMorningSkin', key: 'morningSkin' },
+    { id: 'timeSettingBreakfast', key: 'breakfast' },
+    { id: 'timeSettingLeave', key: 'leaveCollege' },
+    { id: 'timeSettingSnack', key: 'eveningSnack' },
+    { id: 'timeSettingStudy', key: 'study' },
+    { id: 'timeSettingCookDinner', key: 'cookDinner' },
+    { id: 'timeSettingDinner', key: 'dinner' },
+    { id: 'timeSettingNightSkin', key: 'nightSkin' },
+    { id: 'timeSettingPrep', key: 'prepTomorrow' },
+    { id: 'timeSettingSleep', key: 'sleep' }
+  ];
+
+  timingFields.forEach(tf => {
+    const el = document.getElementById(tf.id);
+    if (el) {
+      el.addEventListener('change', (e) => {
+        const val = e.target.value.trim();
+        stateManager.updateScheduleTimes({ [tf.key]: val });
+        renderAll();
+        showToast(`Updated ${tf.key} timing`);
+      });
+    }
+  });
+
+  // Targets
   document.getElementById('settingWaterTarget').addEventListener('change', (e) => {
     const val = parseFloat(e.target.value) || 3.0;
     stateManager.updateTargets({ waterTargetL: val });
@@ -953,7 +1340,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('settingLeaveTime').addEventListener('change', (e) => {
-    stateManager.updateTravel({ leaveHomeTime: e.target.value });
+    stateManager.updateTravel({ leaveHomeTime: e.target.value.trim() });
     renderAll();
   });
 
@@ -963,11 +1350,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('settingReturnTime').addEventListener('change', (e) => {
-    stateManager.updateTravel({ returnHomeTime: e.target.value });
+    stateManager.updateTravel({ returnHomeTime: e.target.value.trim() });
     renderAll();
   });
 
-  // Hair care days checkboxes
+  // Hair care days checkboxes in settings
   document.getElementById('settingsHairDayChecks').addEventListener('change', () => {
     const selected = [];
     document.querySelectorAll('.hair-day-cb:checked').forEach(cb => selected.push(cb.value));
@@ -981,7 +1368,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Skincare Products Add & Delete
   document.getElementById('btnAddSkincareProduct').addEventListener('click', () => {
-    const name = prompt('Enter skincare product name (e.g. Aloe Vera Gel, Cleanser):');
+    const name = prompt('Enter skincare product name (e.g. Aloe Vera Gel, Sunscreen):');
     if (!name || !name.trim()) return;
     const timeChoice = confirm('Click OK for Morning, or CANCEL for Night') ? 'Morning' : 'Night';
     const products = [...(stateManager.getState().skincareProducts || [])];
@@ -1020,7 +1407,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (timeInput) {
       const key = timeInput.dataset.key;
-      reminders[key] = { ...reminders[key], time: timeInput.value };
+      reminders[key] = { ...reminders[key], time: timeInput.value.trim() };
       stateManager.updateReminders(reminders);
       showToast('Reminder time updated');
     }
